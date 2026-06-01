@@ -6,8 +6,8 @@ MapKit::MapKit(void *ns_vw) : MapKit(){
     this->map_bridge = new MapKitBridge(ns_vw);
 }
 
-MapKit::MapKit(void *ns_vw, const fpoint &point, const fsize &size){
-    this->map_bridge = new MapKitBridge(ns_vw, point, size);
+MapKit::MapKit(void *ns_vw, const fpoint &point, const fsize &size, const fscale &scale){
+    this->map_bridge = new MapKitBridge(ns_vw, point, size, scale);
 }
 
 MapKit::~MapKit(){

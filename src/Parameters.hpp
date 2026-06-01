@@ -9,10 +9,10 @@
 #define Parameters_hpp
 
 struct fsize{
-    long x;
-    long y;
+    double x;
+    double y;
     
-    fsize() : x(0), y(0){}
+    fsize() : x(0.f), y(0.f){}
     fsize(long x, long y) : fsize(){
         this->x = x;
         this->y = y;
@@ -33,10 +33,10 @@ struct fsize{
 };
 
 struct fpoint{
-    long x;
-    long y;
+    double x;
+    double y;
     
-    fpoint() : x(0), y(0){}
+    fpoint() : x(0.f), y(0.f){}
     fpoint(long x, long y) : fpoint(){
         this->x = x;
         this->y = y;
@@ -58,6 +58,13 @@ struct fpoint{
 
 const fsize  fSizeDefault  = { -1, -1 };
 const fpoint fPointDefault = { -1, -1 };
+
+enum class fscale{
+    fnone,
+    fauto,
+    fwidth,
+    fheight
+};
 
 
 #endif

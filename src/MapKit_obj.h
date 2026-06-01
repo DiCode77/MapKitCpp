@@ -27,7 +27,7 @@ public:
         [this->ns_view addSubview:this->map_view];
     }
     
-    MapKitBridge(void *ns_vw, const fpoint &point, const fsize &size) : MapKitBridge(){
+    MapKitBridge(void *ns_vw, const fpoint &point, const fsize &size, const fscale &scale) : MapKitBridge(){
         this->ns_view  = (__bridge NSView*)ns_vw;
         this->rect_map = [this->ns_view bounds];
         
@@ -43,7 +43,21 @@ public:
         
         this->map_view = [[MKMapView alloc] initWithFrame:this->rect_map];
         
-        [this->map_view setAutoresizingMask:NSViewWidthSizable | NSViewHeightSizable];
+        switch (scale) {
+            case fscale::fnone:
+                [this->map_view setAutoresizingMask:NSViewNotSizable];
+                break;
+            case fscale::fauto:
+                [this->map_view setAutoresizingMask:NSViewWidthSizable | NSViewHeightSizable];
+                break;
+            case fscale::fwidth:
+                [this->map_view setAutoresizingMask:NSViewWidthSizable];
+                break;
+            case fscale::fheight:
+                [this->map_view setAutoresizingMask:NSViewHeightSizable];
+                break;
+        }
+
         [this->ns_view addSubview:this->map_view];
     }
     

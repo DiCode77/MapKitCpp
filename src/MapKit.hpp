@@ -16,7 +16,7 @@ class MapKit{
 public:
     MapKit();
     MapKit(void*);
-    MapKit(void*, const fpoint& = fPointDefault, const fsize& = fSizeDefault);
+    MapKit(void*, const fpoint& = fPointDefault, const fsize& = fSizeDefault, const fscale & = fscale::fauto);
     ~MapKit();
     
     void init(void*);
