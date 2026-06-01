@@ -47,13 +47,39 @@ public:
             case fscale::fnone:
                 [this->map_view setAutoresizingMask:NSViewNotSizable];
                 break;
+            case fscale::fnone_fix_point:
+                this->rect_map.size.width  -= this->rect_map.origin.x;
+                this->rect_map.size.height -= this->rect_map.origin.y;
+                
+                [this->map_view setFrame:this->rect_map];
+                [this->map_view setAutoresizingMask:NSViewNotSizable];
+                break;
             case fscale::fauto:
+                [this->map_view setAutoresizingMask:NSViewWidthSizable | NSViewHeightSizable];
+                break;
+            case fscale::fauto_fix_point:
+                this->rect_map.size.width  -= this->rect_map.origin.x;
+                this->rect_map.size.height -= this->rect_map.origin.y;
+                
+                [this->map_view setFrame:this->rect_map];
                 [this->map_view setAutoresizingMask:NSViewWidthSizable | NSViewHeightSizable];
                 break;
             case fscale::fwidth:
                 [this->map_view setAutoresizingMask:NSViewWidthSizable];
                 break;
+            case fscale::fwidth_fix_point:
+                this->rect_map.size.width  -= this->rect_map.origin.x;
+                
+                [this->map_view setFrame:this->rect_map];
+                [this->map_view setAutoresizingMask:NSViewWidthSizable];
+                break;
             case fscale::fheight:
+                [this->map_view setAutoresizingMask:NSViewHeightSizable];
+                break;
+            case fscale::fheight_fix_point:
+                this->rect_map.size.height -= this->rect_map.origin.y;
+                
+                [this->map_view setFrame:this->rect_map];
                 [this->map_view setAutoresizingMask:NSViewHeightSizable];
                 break;
         }
@@ -63,6 +89,20 @@ public:
     
     ~MapKitBridge(){
         [map_view release];
+    }
+    
+    void setSize(const fsize &size){
+        this->rect_map.size = CGSize(size.x, size.y);
+        [this->map_view setFrame:this->rect_map];
+    }
+    
+    void setSize_fix_point(const fsize &size){
+        this->setSize(fsize(size.x - this->rect_map.origin.x, size.y - this->rect_map.origin.y));
+    }
+    
+    void setPoint(const fpoint &point){
+        this->rect_map.origin = CGPoint(point.x, point.y);
+        [this->map_view setFrame:this->rect_map];
     }
 };
 

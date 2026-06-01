@@ -17,3 +17,15 @@ MapKit::~MapKit(){
 }
 
 void MapKit::init(void *ns_vw){}
+
+void MapKit::setSize(const fsize &size){
+    this->map_bridge->setSize(size);
+}
+
+void MapKit::setSize_fix_point(const fsize &size){
+    this->map_bridge->setSize_fix_point(size);
+}
+
+void MapKit::setPoint(const fpoint &point){
+    this->map_bridge->setPoint(point);
+}

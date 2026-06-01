@@ -20,6 +20,9 @@ public:
     ~MapKit();
     
     void init(void*);
+    void setSize(const fsize&);
+    void setSize_fix_point(const fsize&);
+    void setPoint(const fpoint&);
 };
 
 #endif /* MapKit_hpp */

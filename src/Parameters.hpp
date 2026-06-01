@@ -61,9 +61,13 @@ const fpoint fPointDefault = { -1, -1 };
 
 enum class fscale{
     fnone,
+    fnone_fix_point,
     fauto,
+    fauto_fix_point,
     fwidth,
-    fheight
+    fwidth_fix_point,
+    fheight,
+    fheight_fix_point
 };
 
 
