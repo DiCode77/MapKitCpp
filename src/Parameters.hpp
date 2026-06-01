@@ -112,9 +112,13 @@ enum class fmap_type{
  +Standard layout
  +Muted colors
  +Less visual clutter
- 
- 
  */
+
+enum class fmap_modes{
+    explore,
+    driveng,
+    transit
+};
 
 
 #endif

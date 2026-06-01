@@ -18,15 +18,6 @@ class MapKitBridge{
     NSRect     rect_map;
 public:
     MapKitBridge() : ns_view(nil), map_view(nil), rect_map(NSMakeRect(-1, -1, -1, -1)){}
-    MapKitBridge(void *ns_vw) : MapKitBridge(){
-        this->ns_view  = (__bridge NSView*)ns_vw;
-        this->rect_map = [this->ns_view bounds];
-        this->map_view = [[MKMapView alloc] initWithFrame:this->rect_map];
-        
-        [this->map_view setAutoresizingMask:NSViewWidthSizable | NSViewHeightSizable];
-        [this->ns_view addSubview:this->map_view];
-    }
-    
     MapKitBridge(void *ns_vw, const fpoint &point, const fsize &size, const fscale &scale, const fmap_type &m_type) : MapKitBridge(){
         this->ns_view  = (__bridge NSView*)ns_vw;
         this->rect_map = [this->ns_view bounds];
@@ -89,7 +80,7 @@ public:
     }
     
     ~MapKitBridge(){
-        [map_view release];
+        [this->map_view release];
     }
     
     void show();
@@ -106,7 +97,15 @@ public:
     fpoint getPoint();
     
     void setMapType(const fmap_type&);
-    
+    void enable_buildings(const bool&);
+    void enable_traffic(const bool&);
+    void enable_scale(const bool&);
+    void enable_compass(const bool&);
+    void enable_pitch_control(const bool&);
+    void enable_user_location(const bool&);
+    void enable_zoom_controls(const bool&);
+    void enable_points_of_interest(const bool&);
+    void enable_user_tracking_button(const bool&);
 };
 
 #endif /* MapKit_obj_h */

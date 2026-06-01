@@ -56,3 +56,39 @@ fpoint MapKit::getPoint(){
 void MapKit::setMapType(const fmap_type &type){
     this->map_bridge->setMapType(type);
 }
+
+void MapKit::enable_buildings(const bool &bl){
+    this->map_bridge->enable_buildings(bl);
+}
+
+void MapKit::enable_traffic(const bool &bl){
+    this->map_bridge->enable_traffic(bl);
+}
+
+void MapKit::enable_scale(const bool &bl){
+    this->map_bridge->enable_scale(bl);
+}
+
+void MapKit::enable_compass(const bool &bl){
+    this->map_bridge->enable_compass(bl);
+}
+
+void MapKit::enable_pitch_control(const bool &bl){
+    this->map_bridge->enable_pitch_control(bl);
+}
+
+void MapKit::enable_user_location(const bool &bl){
+    this->map_bridge->enable_user_location(bl);
+}
+
+void MapKit::enable_zoom_controls(const bool &bl){
+    this->map_bridge->enable_zoom_controls(bl);
+}
+
+void MapKit::enable_points_of_interest(const bool &bl){
+    this->map_bridge->enable_points_of_interest(bl);
+}
+
+void MapKit::enable_user_tracking_button(const bool &bl){
+    this->map_bridge->enable_user_tracking_button(bl);
+}

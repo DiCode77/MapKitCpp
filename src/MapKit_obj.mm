@@ -71,3 +71,43 @@ void MapKitBridge::setMapType(const fmap_type &type){
             break;
     }
 }
+
+void MapKitBridge::enable_buildings(const bool &bl){
+    [this->map_view setShowsBuildings:bl];
+}
+
+void MapKitBridge::enable_traffic(const bool &bl){
+    [this->map_view setShowsTraffic:bl];
+}
+
+void MapKitBridge::enable_scale(const bool &bl){
+    [this->map_view setShowsScale:bl];
+}
+
+void MapKitBridge::enable_compass(const bool &bl){
+    [this->map_view setShowsCompass:bl];
+}
+
+void MapKitBridge::enable_pitch_control(const bool &bl){
+    [this->map_view setShowsPitchControl:bl];
+}
+
+void MapKitBridge::enable_user_location(const bool &bl){
+    [this->map_view setShowsUserLocation:bl];
+}
+
+void MapKitBridge::enable_zoom_controls(const bool &bl){
+    [this->map_view setShowsZoomControls:bl];
+}
+
+void MapKitBridge::enable_points_of_interest(const bool &bl){
+    if (bl){
+        this->map_view.pointOfInterestFilter = nil;
+    }else{
+        this->map_view.pointOfInterestFilter = [MKPointOfInterestFilter filterExcludingAllCategories];
+    }
+}
+
+void MapKitBridge::enable_user_tracking_button(const bool &bl){
+    [this->map_view setShowsUserTrackingButton:bl];
+}

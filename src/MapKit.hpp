@@ -18,8 +18,8 @@ public:
     MapKit(void*, const fpoint& = fPointDefault, const fsize& = fSizeDefault, const fscale& = fscale::fauto, const fmap_type& = fmap_type::standard);
     ~MapKit();
     
-    void show();
-    void hide();
+    void show();   // Show map.
+    void hide();   // Hide map
     bool is_show();
     
     void setSize(const fsize&);
@@ -31,7 +31,17 @@ public:
     fsize  getSize();
     fpoint getPoint();
     
-    void setMapType(const fmap_type&);
+    void setMapType(const fmap_type&);             // Select the map type.
+ 
+    void enable_buildings(const bool&);            // Shows houses.
+    void enable_traffic(const bool&);              // Shows traffic conditions.
+    void enable_scale(const bool&);                // Shows the map scale.
+    void enable_compass(const bool&);              // The compass shows.
+    void enable_pitch_control(const bool&);        // Displays the map tilt button.
+    void enable_user_location(const bool&);        // Shows the user's location.
+    void enable_zoom_controls(const bool&);        // Displays the standard macOS zoom buttons.
+    void enable_points_of_interest(const bool&);   // Displays POIs (Points of Interest). Displays airplanes, stores, and more.
+    void enable_user_tracking_button(const bool&); // Shows the finished Apple geolocation button:
 };
 
 #endif /* MapKit_hpp */
