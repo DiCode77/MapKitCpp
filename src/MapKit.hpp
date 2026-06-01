@@ -19,10 +19,13 @@ public:
     MapKit(void*, const fpoint& = fPointDefault, const fsize& = fSizeDefault, const fscale & = fscale::fauto);
     ~MapKit();
     
-    void init(void*);
+    void show();
+    void hide();
     void setSize(const fsize&);
     void setSize_fix_point(const fsize&);
     void setPoint(const fpoint&);
+    void set_auto_size();
+    void set_auto_size_fix_point();
 };
 
 #endif /* MapKit_hpp */

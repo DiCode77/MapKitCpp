@@ -91,6 +91,14 @@ public:
         [map_view release];
     }
     
+    void show(){
+        [this->map_view setHidden:NO];
+    }
+    
+    void hide(){
+        [this->map_view setHidden:YES];
+    }
+    
     void setSize(const fsize &size){
         this->rect_map.size = CGSize(size.x, size.y);
         [this->map_view setFrame:this->rect_map];
@@ -102,6 +110,20 @@ public:
     
     void setPoint(const fpoint &point){
         this->rect_map.origin = CGPoint(point.x, point.y);
+        [this->map_view setFrame:this->rect_map];
+    }
+    
+    void set_auto_size(){
+        this->rect_map.size = [this->ns_view bounds].size;
+        [this->map_view setFrame:this->rect_map];
+    }
+    
+    void set_auto_size_fix_point(){
+        this->rect_map.size = [this->ns_view bounds].size;
+        
+        this->rect_map.size.width -= this->rect_map.origin.x;
+        this->rect_map.size.height -= this->rect_map.origin.y;
+        
         [this->map_view setFrame:this->rect_map];
     }
 };

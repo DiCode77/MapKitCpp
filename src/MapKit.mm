@@ -16,7 +16,13 @@ MapKit::~MapKit(){
     }
 }
 
-void MapKit::init(void *ns_vw){}
+void MapKit::show(){
+    this->map_bridge->show();
+}
+
+void MapKit::hide(){
+    this->map_bridge->hide();
+}
 
 void MapKit::setSize(const fsize &size){
     this->map_bridge->setSize(size);
@@ -28,4 +34,12 @@ void MapKit::setSize_fix_point(const fsize &size){
 
 void MapKit::setPoint(const fpoint &point){
     this->map_bridge->setPoint(point);
+}
+
+void MapKit::set_auto_size(){
+    this->map_bridge->set_auto_size();
+}
+
+void MapKit::set_auto_size_fix_point(){
+    this->map_bridge->set_auto_size_fix_point();
 }
