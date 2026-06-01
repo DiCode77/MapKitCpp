@@ -2,12 +2,9 @@
 #include "MapKit_obj.h"
 
 MapKit::MapKit() : map_bridge(nullptr){};
-MapKit::MapKit(void *ns_vw) : MapKit(){
-    this->map_bridge = new MapKitBridge(ns_vw);
-}
 
-MapKit::MapKit(void *ns_vw, const fpoint &point, const fsize &size, const fscale &scale){
-    this->map_bridge = new MapKitBridge(ns_vw, point, size, scale);
+MapKit::MapKit(void *ns_vw, const fpoint &point, const fsize &size, const fscale &scale, const fmap_type &type){
+    this->map_bridge = new MapKitBridge(ns_vw, point, size, scale, type);
 }
 
 MapKit::~MapKit(){
@@ -22,6 +19,10 @@ void MapKit::show(){
 
 void MapKit::hide(){
     this->map_bridge->hide();
+}
+
+bool MapKit::is_show(){
+    return this->map_bridge->is_show();
 }
 
 void MapKit::setSize(const fsize &size){
@@ -42,4 +43,16 @@ void MapKit::set_auto_size(){
 
 void MapKit::set_auto_size_fix_point(){
     this->map_bridge->set_auto_size_fix_point();
+}
+
+fsize MapKit::getSize(){
+    return this->map_bridge->getSize();
+}
+
+fpoint MapKit::getPoint(){
+    return this->map_bridge->getPoint();
+}
+
+void MapKit::setMapType(const fmap_type &type){
+    this->map_bridge->setMapType(type);
 }

@@ -27,7 +27,7 @@ public:
         [this->ns_view addSubview:this->map_view];
     }
     
-    MapKitBridge(void *ns_vw, const fpoint &point, const fsize &size, const fscale &scale) : MapKitBridge(){
+    MapKitBridge(void *ns_vw, const fpoint &point, const fsize &size, const fscale &scale, const fmap_type &m_type) : MapKitBridge(){
         this->ns_view  = (__bridge NSView*)ns_vw;
         this->rect_map = [this->ns_view bounds];
         
@@ -84,6 +84,7 @@ public:
                 break;
         }
 
+        this->setMapType(m_type);
         [this->ns_view addSubview:this->map_view];
     }
     
@@ -91,41 +92,21 @@ public:
         [map_view release];
     }
     
-    void show(){
-        [this->map_view setHidden:NO];
-    }
+    void show();
+    void hide();
+    bool is_show();
     
-    void hide(){
-        [this->map_view setHidden:YES];
-    }
+    void setSize(const fsize &size);
+    void setSize_fix_point(const fsize &size);
+    void setPoint(const fpoint &point);
+    void set_auto_size();
+    void set_auto_size_fix_point();
     
-    void setSize(const fsize &size){
-        this->rect_map.size = CGSize(size.x, size.y);
-        [this->map_view setFrame:this->rect_map];
-    }
+    fsize  getSize();
+    fpoint getPoint();
     
-    void setSize_fix_point(const fsize &size){
-        this->setSize(fsize(size.x - this->rect_map.origin.x, size.y - this->rect_map.origin.y));
-    }
+    void setMapType(const fmap_type&);
     
-    void setPoint(const fpoint &point){
-        this->rect_map.origin = CGPoint(point.x, point.y);
-        [this->map_view setFrame:this->rect_map];
-    }
-    
-    void set_auto_size(){
-        this->rect_map.size = [this->ns_view bounds].size;
-        [this->map_view setFrame:this->rect_map];
-    }
-    
-    void set_auto_size_fix_point(){
-        this->rect_map.size = [this->ns_view bounds].size;
-        
-        this->rect_map.size.width -= this->rect_map.origin.x;
-        this->rect_map.size.height -= this->rect_map.origin.y;
-        
-        [this->map_view setFrame:this->rect_map];
-    }
 };
 
 #endif /* MapKit_obj_h */

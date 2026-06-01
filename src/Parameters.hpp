@@ -70,5 +70,51 @@ enum class fscale{
     fheight_fix_point
 };
 
+// These are the styles supported by the map.
+enum class fmap_type{
+    standard,
+    sate_llite,
+    hybrid,
+    sate_llite_flyover,
+    hybrid_flyover,
+    muted_standard
+};
+
+/*
+ standard:
+ +roads
+ +cities
+ +rivers
+ +borders
+ 
+ sate_llite:
+ +satellite images
+ -city names
+ -roads
+ 
+ hybrid:
+ +satellite
+ +roads
+ +city names
+ 
+ sate_llite_flyover:
+ +houses
+ +trees
+ +terrain
+ +3D
+ 
+ hybrid_flyover:
+ +3D
+ +city names
+ +roads
+ 
+ muted_standard:
+ +Standard layout
+ +Muted colors
+ +Less visual clutter
+ 
+ 
+ */
+
 
 #endif
