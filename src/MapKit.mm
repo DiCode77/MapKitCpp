@@ -92,3 +92,11 @@ void MapKit::enable_points_of_interest(const bool &bl){
 void MapKit::enable_user_tracking_button(const bool &bl){
     this->map_bridge->enable_user_tracking_button(bl);
 }
+
+double MapKit::getCenterCordinateDistance(){
+    return this->map_bridge->getCenterCordinateDistance();
+}
+
+void MapKit::connect(const ffunc_conn &id, std::function<void(const std::any&)> func){
+    this->map_bridge->connect(id, func);
+}

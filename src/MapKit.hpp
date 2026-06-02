@@ -8,6 +8,8 @@
 #ifndef MapKit_hpp
 #define MapKit_hpp
 
+#include <functional>
+#include <any>
 #include "Parameters.hpp"
 
 class MapKitBridge;
@@ -42,6 +44,10 @@ public:
     void enable_zoom_controls(const bool&);        // Displays the standard macOS zoom buttons.
     void enable_points_of_interest(const bool&);   // Displays POIs (Points of Interest). Displays airplanes, stores, and more.
     void enable_user_tracking_button(const bool&); // Shows the finished Apple geolocation button:
+    
+    double getCenterCordinateDistance();           // Returns the map scale in meters.
+    
+    void connect(const ffunc_conn&, std::function<void(const std::any&)>); // To implement delegating methods.
 };
 
 #endif /* MapKit_hpp */

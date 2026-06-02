@@ -1,6 +1,96 @@
 #include "MapKit_obj.h"
 #include "MapKit.hpp"
 
+@implementation MapKitDelegate
+- (void)mapViewDidChangeVisibleRegion:(MKMapView*)mapView{
+    if (self.um_func != nil){
+        if (auto it = self.um_func->find(ffunc_conn::m_view_change_region); it != self.um_func->end()){
+            it->second(std::make_any<const double&>(static_cast<const double&>(mapView.camera.centerCoordinateDistance)));
+        }
+    }
+}
+@end
+
+MapKitBridge::MapKitBridge() : ns_view(nil), map_view(nil), rect_map(NSMakeRect(-1, -1, -1, -1)), mk_delegate(nil){}
+MapKitBridge::MapKitBridge(void *ns_vw, const fpoint &point, const fsize &size, const fscale &scale, const fmap_type &m_type) : MapKitBridge(){
+    this->ns_view  = (__bridge NSView*)ns_vw;
+    this->rect_map = [this->ns_view bounds];
+    
+    if (point != fPointDefault){
+        this->rect_map.origin.x = point.x;
+        this->rect_map.origin.y = point.y;
+    }
+    
+    if (size != fSizeDefault){
+        this->rect_map.size.width  = size.x;
+        this->rect_map.size.height = size.y;
+    }
+    
+    this->map_view = [[MKMapView alloc] initWithFrame:this->rect_map];
+    
+    switch (scale) {
+        case fscale::fnone:
+            [this->map_view setAutoresizingMask:NSViewNotSizable];
+            break;
+        case fscale::fnone_fix_point:
+            this->rect_map.size.width  -= this->rect_map.origin.x;
+            this->rect_map.size.height -= this->rect_map.origin.y;
+            
+            [this->map_view setFrame:this->rect_map];
+            [this->map_view setAutoresizingMask:NSViewNotSizable];
+            break;
+        case fscale::fauto:
+            [this->map_view setAutoresizingMask:NSViewWidthSizable | NSViewHeightSizable];
+            break;
+        case fscale::fauto_fix_point:
+            this->rect_map.size.width  -= this->rect_map.origin.x;
+            this->rect_map.size.height -= this->rect_map.origin.y;
+            
+            [this->map_view setFrame:this->rect_map];
+            [this->map_view setAutoresizingMask:NSViewWidthSizable | NSViewHeightSizable];
+            break;
+        case fscale::fwidth:
+            [this->map_view setAutoresizingMask:NSViewWidthSizable];
+            break;
+        case fscale::fwidth_fix_point:
+            this->rect_map.size.width  -= this->rect_map.origin.x;
+            
+            [this->map_view setFrame:this->rect_map];
+            [this->map_view setAutoresizingMask:NSViewWidthSizable];
+            break;
+        case fscale::fheight:
+            [this->map_view setAutoresizingMask:NSViewHeightSizable];
+            break;
+        case fscale::fheight_fix_point:
+            this->rect_map.size.height -= this->rect_map.origin.y;
+            
+            [this->map_view setFrame:this->rect_map];
+            [this->map_view setAutoresizingMask:NSViewHeightSizable];
+            break;
+    }
+
+    this->setMapType(m_type);
+    [this->ns_view addSubview:this->map_view];
+    
+    
+    MapKitDelegate* delegate = [[MapKitDelegate alloc] init];
+    
+    this->map_view.delegate = delegate;
+}
+
+MapKitBridge::~MapKitBridge(){
+    if (this->mk_delegate != nil){
+        this->map_view.delegate = nil;
+        [this->mk_delegate release];
+        this->mk_delegate = nil;
+    }
+    
+    if (this->map_view != nil){
+        [this->map_view release];
+        this->map_view = nil;
+    }
+}
+
 void MapKitBridge::show(){
     [this->map_view setHidden:NO];
 }
@@ -110,4 +200,24 @@ void MapKitBridge::enable_points_of_interest(const bool &bl){
 
 void MapKitBridge::enable_user_tracking_button(const bool &bl){
     [this->map_view setShowsUserTrackingButton:bl];
+}
+
+double MapKitBridge::getCenterCordinateDistance(){
+    return [this->map_view camera].centerCoordinateDistance;
+}
+
+void MapKitBridge::connect(const ffunc_conn &isId, std::function<void(const std::any&)> func){
+    if (this->mk_delegate == nil){
+        this->mk_delegate = [[MapKitDelegate alloc] init];
+        this->mk_delegate.um_func = &this->um_func;
+        this->map_view.delegate = this->mk_delegate;
+    }
+    
+    switch (isId) {
+        case ffunc_conn::m_view_change_region:
+            if (!this->um_func.count(ffunc_conn::m_view_change_region)){
+                this->um_func.insert(std::make_pair(ffunc_conn::m_view_change_region, func));
+            }
+            break;
+    }
 }

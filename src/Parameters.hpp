@@ -120,5 +120,9 @@ enum class fmap_modes{
     transit
 };
 
+enum class ffunc_conn{
+    m_view_change_region,
+};
+
 
 #endif
