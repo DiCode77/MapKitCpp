@@ -100,3 +100,7 @@ double MapKit::getCenterCordinateDistance(){
 void MapKit::connect(const ffunc_conn &id, std::function<void(const std::any&)> func){
     this->map_bridge->connect(id, func);
 }
+
+CountryBorder &MapKit::add_city_borders(){
+    return this->map_bridge->cy_border();
+}

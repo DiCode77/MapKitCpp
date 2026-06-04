@@ -124,5 +124,9 @@ enum class ffunc_conn{
     m_view_change_region,
 };
 
+enum class fcountries{
+    ukraine
+};
+
 
 #endif

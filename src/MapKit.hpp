@@ -11,6 +11,7 @@
 #include <functional>
 #include <any>
 #include "Parameters.hpp"
+#include "CyBorder.hpp"
 
 class MapKitBridge;
 class MapKit{
@@ -48,6 +49,8 @@ public:
     double getCenterCordinateDistance();           // Returns the map scale in meters.
     
     void connect(const ffunc_conn&, std::function<void(const std::any&)>); // To implement delegating methods.
+    
+    CountryBorder &add_city_borders();
 };
 
 #endif /* MapKit_hpp */

@@ -14,6 +14,7 @@
 #include <functional>
 #include <any>
 #include "Parameters.hpp"
+#include "CyBorder.hpp"
 
 using um_map_func = std::unordered_map<ffunc_conn, std::function<void(const std::any&)>>;
 
@@ -27,6 +28,7 @@ class MapKitBridge{
     MKMapView      *map_view;
     NSRect         rect_map;
     MapKitDelegate *mk_delegate;
+    CountryBorder  m_cy_borders;
 public:
     um_map_func um_func;
 public:
@@ -61,6 +63,8 @@ public:
     double getCenterCordinateDistance();
     
     void connect(const ffunc_conn &isId, std::function<void(const std::any&)>);
+    
+    CountryBorder &cy_border();
 };
 
 #endif /* MapKit_obj_h */

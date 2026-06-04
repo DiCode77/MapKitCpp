@@ -9,6 +9,31 @@
         }
     }
 }
+
+- (MKOverlayRenderer*) mapView:(MKMapView*)mapView rendererForOverlay: (id<MKOverlay>)overlay{
+if ([overlay isKindOfClass: [MKPolygon class]]){
+
+        MKPolygonRenderer* renderer = [[MKPolygonRenderer alloc] initWithPolygon: (MKPolygon*)overlay];
+
+        renderer.strokeColor = [NSColor yellowColor];
+  //  renderer.fillColor = [[NSColor yellowColor] colorWithAlphaComponent: 0.15];
+    
+//    renderer.lineWidth = 1.0;
+ //   renderer.fillColor = nil;
+ //   renderer.lineDashPattern = @[@10, @5];
+    
+    renderer.strokeColor = [NSColor yellowColor];
+
+    renderer.lineWidth = 1.0;
+    
+        return renderer;
+
+    }
+
+    return nil;
+
+}
+
 @end
 
 MapKitBridge::MapKitBridge() : ns_view(nil), map_view(nil), rect_map(NSMakeRect(-1, -1, -1, -1)), mk_delegate(nil){}
@@ -70,12 +95,8 @@ MapKitBridge::MapKitBridge(void *ns_vw, const fpoint &point, const fsize &size, 
     }
 
     this->setMapType(m_type);
+    this->m_cy_borders.connect_map(reinterpret_cast<void*>(this->map_view));
     [this->ns_view addSubview:this->map_view];
-    
-    
-    MapKitDelegate* delegate = [[MapKitDelegate alloc] init];
-    
-    this->map_view.delegate = delegate;
 }
 
 MapKitBridge::~MapKitBridge(){
@@ -220,4 +241,8 @@ void MapKitBridge::connect(const ffunc_conn &isId, std::function<void(const std:
             }
             break;
     }
+}
+
+CountryBorder &MapKitBridge::cy_border(){
+    return this->m_cy_borders;
 }
