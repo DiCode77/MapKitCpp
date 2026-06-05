@@ -51,6 +51,35 @@ um_map_poli &CountryBorder::getMapBorders(){
     return this->um_borders;
 }
 
+void CountryBorder::show_boundary(const fcountries &cnt){
+    if (auto it = this->um_borders.find(cnt); it != this->um_borders.end()){
+        if (it->second.visible == false){
+            it->second.visible = true;
+            MKMapView *map = reinterpret_cast<MKMapView*>(this->mk_map);
+            
+            for (auto p_it = it->second.country.begin(); p_it != it->second.country.end(); p_it++){
+                MKPolygon *pl = reinterpret_cast<MKPolygon*>(*p_it);
+                [map addOverlay:pl];
+            }
+        }
+        
+    }
+}
+
+void CountryBorder::hide_boundary(const fcountries &cnt){
+    if (auto it = this->um_borders.find(cnt); it != this->um_borders.end()){
+        if (it->second.visible == true){
+            it->second.visible = false;
+            MKMapView *map = reinterpret_cast<MKMapView*>(this->mk_map);
+            
+            for (auto p_it = it->second.country.begin(); p_it != it->second.country.end(); p_it++){
+                MKPolygon *pl = reinterpret_cast<MKPolygon*>(*p_it);
+                [map removeOverlay:pl];
+            }
+        }
+        
+    }
+}
 
 bool CountryBorder::GetMKPolygon(std::vector<std::vector<Geodata>> &vec_loc, const std::string &d_json){
     if (!d_json.empty()){

@@ -21,6 +21,7 @@ struct Geodata{
 
 struct Settled{
     std::vector<void*> country;
+    bool visible = true;
 };
 
 using um_map_poli = std::unordered_map<fcountries, Settled>;
@@ -41,6 +42,10 @@ public:
     void setCountryBorder(const fcountries&, const std::string&);
     
     um_map_poli &getMapBorders();
+    
+    void show_boundary(const fcountries&);
+    void hide_boundary(const fcountries&);
+    
     
 private:
     bool GetMKPolygon(std::vector<std::vector<Geodata>>&, const std::string&);
