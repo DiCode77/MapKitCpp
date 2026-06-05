@@ -125,7 +125,12 @@ enum class ffunc_conn{
 };
 
 enum class fcountries{
-    ukraine
+    ukraine,
+    poland,
+    slovakia,
+    hungary,
+    romania,
+    usa
 };
 
 

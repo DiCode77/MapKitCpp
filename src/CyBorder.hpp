@@ -14,7 +14,16 @@
 #include <vector>
 #include "Parameters.hpp"
 
-using um_map_poli = std::unordered_map<fcountries, void*>;
+struct Geodata{
+    double x;
+    double y;
+};
+
+struct Settled{
+    std::vector<void*> country;
+};
+
+using um_map_poli = std::unordered_map<fcountries, Settled>;
 
 class CountryBorder{
     um_map_poli    um_borders;
@@ -34,7 +43,7 @@ public:
     um_map_poli &getMapBorders();
     
 private:
-    void *GetMKPolygon(const std::string&);
+    bool GetMKPolygon(std::vector<std::vector<Geodata>>&, const std::string&);
 };
 
 #endif
