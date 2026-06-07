@@ -21,6 +21,7 @@ using um_map_func = std::unordered_map<ffunc_conn, std::function<void(const std:
 class MapKitBridge;
 @interface MapKitDelegate : NSObject <MKMapViewDelegate>
 @property um_map_func *um_func;
+@property um_map_poli *um_poli;
 @end
 
 class MapKitBridge{
@@ -65,6 +66,8 @@ public:
     void connect(const ffunc_conn &isId, std::function<void(const std::any&)>);
     
     CountryBorder &cy_border();
+private:
+    void CreatedDelegatedMapKitBridge();
 };
 
 #endif /* MapKit_obj_h */

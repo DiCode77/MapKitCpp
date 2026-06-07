@@ -19,9 +19,16 @@ struct Geodata{
     double y;
 };
 
+struct Colors{
+    int r = 255;
+    int g = 255;
+    int b = 0;
+};
+
 struct Settled{
     std::vector<void*> country;
-    bool visible = true;
+    bool visible = false;
+    Colors color;
 };
 
 using um_map_poli = std::unordered_map<fcountries, Settled>;
@@ -45,6 +52,8 @@ public:
     
     void show_boundary(const fcountries&);
     void hide_boundary(const fcountries&);
+    
+    void set_color_boundery(const Colors&);
     
     
 private:

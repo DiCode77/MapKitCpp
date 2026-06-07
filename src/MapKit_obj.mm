@@ -39,7 +39,7 @@ if ([overlay isKindOfClass: [MKPolygon class]]){
 MapKitBridge::MapKitBridge() : ns_view(nil), map_view(nil), rect_map(NSMakeRect(-1, -1, -1, -1)), mk_delegate(nil){}
 MapKitBridge::MapKitBridge(void *ns_vw, const fpoint &point, const fsize &size, const fscale &scale, const fmap_type &m_type) : MapKitBridge(){
     this->ns_view  = (__bridge NSView*)ns_vw;
-    this->rect_map = [this->ns_view bounds];
+    this->rect_map = [this->ns_view bounds];  // We obtain information on size and position.
     
     if (point != fPointDefault){
         this->rect_map.origin.x = point.x;
@@ -51,30 +51,31 @@ MapKitBridge::MapKitBridge(void *ns_vw, const fpoint &point, const fsize &size, 
         this->rect_map.size.height = size.y;
     }
     
+    // Initialize a map with your position and size parameters.
     this->map_view = [[MKMapView alloc] initWithFrame:this->rect_map];
     
     switch (scale) {
-        case fscale::fnone:
+        case fscale::fnone: // This setting ignores events related to resizing the main window, both horizontally and vertically.
             [this->map_view setAutoresizingMask:NSViewNotSizable];
             break;
-        case fscale::fnone_fix_point:
+        case fscale::fnone_fix_point: // This is the same as in fnone, but it takes into account any offsets that may have been set manually.
             this->rect_map.size.width  -= this->rect_map.origin.x;
             this->rect_map.size.height -= this->rect_map.origin.y;
             
             [this->map_view setFrame:this->rect_map];
             [this->map_view setAutoresizingMask:NSViewNotSizable];
             break;
-        case fscale::fauto:
+        case fscale::fauto: // All horizontal and vertical changes to the main window are taken into account.
             [this->map_view setAutoresizingMask:NSViewWidthSizable | NSViewHeightSizable];
             break;
-        case fscale::fauto_fix_point:
+        case fscale::fauto_fix_point: // Same as fauto, but fpoint changes are also taken into account.
             this->rect_map.size.width  -= this->rect_map.origin.x;
             this->rect_map.size.height -= this->rect_map.origin.y;
             
             [this->map_view setFrame:this->rect_map];
             [this->map_view setAutoresizingMask:NSViewWidthSizable | NSViewHeightSizable];
             break;
-        case fscale::fwidth:
+        case fscale::fwidth: // Allow horizontal resizing.
             [this->map_view setAutoresizingMask:NSViewWidthSizable];
             break;
         case fscale::fwidth_fix_point:
@@ -83,7 +84,7 @@ MapKitBridge::MapKitBridge(void *ns_vw, const fpoint &point, const fsize &size, 
             [this->map_view setFrame:this->rect_map];
             [this->map_view setAutoresizingMask:NSViewWidthSizable];
             break;
-        case fscale::fheight:
+        case fscale::fheight: // Allow vertical resizing
             [this->map_view setAutoresizingMask:NSViewHeightSizable];
             break;
         case fscale::fheight_fix_point:
@@ -94,7 +95,8 @@ MapKitBridge::MapKitBridge(void *ns_vw, const fpoint &point, const fsize &size, 
             break;
     }
 
-    this->setMapType(m_type);
+    this->setMapType(m_type); // Here we specify the map type.
+    this->CreatedDelegatedMapKitBridge();
     this->m_cy_borders.connect_map(reinterpret_cast<void*>(this->map_view));
     [this->ns_view addSubview:this->map_view];
 }
@@ -228,12 +230,6 @@ double MapKitBridge::getCenterCordinateDistance(){
 }
 
 void MapKitBridge::connect(const ffunc_conn &isId, std::function<void(const std::any&)> func){
-    if (this->mk_delegate == nil){
-        this->mk_delegate = [[MapKitDelegate alloc] init];
-        this->mk_delegate.um_func = &this->um_func;
-        this->map_view.delegate = this->mk_delegate;
-    }
-    
     switch (isId) {
         case ffunc_conn::m_view_change_region:
             if (!this->um_func.count(ffunc_conn::m_view_change_region)){
@@ -245,4 +241,13 @@ void MapKitBridge::connect(const ffunc_conn &isId, std::function<void(const std:
 
 CountryBorder &MapKitBridge::cy_border(){
     return this->m_cy_borders;
+}
+
+void MapKitBridge::CreatedDelegatedMapKitBridge(){
+    if (this->mk_delegate == nil){
+        this->mk_delegate = [[MapKitDelegate alloc] init];
+        this->mk_delegate.um_func = &this->um_func;
+        this->mk_delegate.um_poli = &this->cy_border().getMapBorders();
+        this->map_view.delegate = this->mk_delegate;
+    }
 }

@@ -31,16 +31,9 @@ void CountryBorder::setCountryBorder(const fcountries &city, const std::string &
             Settled sld;
             
             for (auto it = vec.begin(); it != vec.end(); it++){
-                sld.country.emplace_back(reinterpret_cast<void*>([MKPolygon polygonWithCoordinates:(CLLocationCoordinate2D*)it->data() count:it->size()]));
+                sld.country.emplace_back(reinterpret_cast<void*>([[MKPolygon polygonWithCoordinates:(CLLocationCoordinate2D*)it->data() count:it->size()] retain]));
             }
-            
-            MKMapView *_map = reinterpret_cast<MKMapView*>(this->mk_map);
-            for (auto it = sld.country.begin(); it != sld.country.end(); it++){
-                [_map addOverlay:reinterpret_cast<MKPolygon*>(*it)];
-            }
-            
             this->um_borders.insert(std::make_pair(city, Settled{ .country = std::move(sld.country) }));
-            
         }else{
             printf("%s\n", "Error created country border, method 'setCountryBorder(..., ...)'");
         }
@@ -80,6 +73,8 @@ void CountryBorder::hide_boundary(const fcountries &cnt){
         
     }
 }
+
+void CountryBorder::set_color_boundery(const Colors &color){}
 
 bool CountryBorder::GetMKPolygon(std::vector<std::vector<Geodata>> &vec_loc, const std::string &d_json){
     if (!d_json.empty()){
