@@ -1,6 +1,10 @@
 #include "CyBorder.hpp"
 #include "MapKit_obj.h"
 
+CountryBorder::~CountryBorder(){
+    this->Destroy();
+}
+
 void CountryBorder::connect_map(void *map){
     if (this->mk_map == nullptr){
         this->mk_map = map;
@@ -8,6 +12,7 @@ void CountryBorder::connect_map(void *map){
 }
 
 void CountryBorder::disconnect_map(){
+    this->Destroy();
     this->mk_map = nullptr;
 }
 
@@ -75,6 +80,17 @@ void CountryBorder::hide_boundary(const fcountries &cnt){
 }
 
 void CountryBorder::set_color_boundery(const Colors &color){}
+
+void CountryBorder::Destroy(){
+    if (!this->um_borders.empty()){
+        for (auto &[kay, val] : this->um_borders){
+            for (auto it = val.country.begin(); it != val.country.end(); it++){
+                [reinterpret_cast<MKPolygon*>(*it) release];
+            }
+        }
+        this->um_borders.clear();
+    }
+}
 
 bool CountryBorder::GetMKPolygon(std::vector<std::vector<Geodata>> &vec_loc, const std::string &d_json){
     if (!d_json.empty()){

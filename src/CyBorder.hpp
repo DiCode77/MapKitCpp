@@ -41,6 +41,7 @@ public:
     CountryBorder(void *map): mk_map(map){}
     CountryBorder(const CountryBorder&) = delete;
     CountryBorder(CountryBorder&&) = delete;
+    ~CountryBorder();
     
     void connect_map(void*);
     void disconnect_map();
@@ -55,8 +56,8 @@ public:
     
     void set_color_boundery(const Colors&);
     
-    
 private:
+    void Destroy();
     bool GetMKPolygon(std::vector<std::vector<Geodata>>&, const std::string&);
 };
 
