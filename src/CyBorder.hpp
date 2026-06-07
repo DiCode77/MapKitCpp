@@ -20,9 +20,18 @@ struct Geodata{
 };
 
 struct Colors{
-    int r = 255;
-    int g = 255;
-    int b = 0;
+    float r = 0.f;
+    float g = 0.f;
+    float b = 0.f;
+    float a = 1.0f;
+    
+    bool operator== (const Colors &_c){
+        return this->r == _c.r && this->g == _c.g && this->b == _c.b && this->a == _c.a;
+    }
+    
+    bool operator!= (const Colors &_c){
+        return this->r != _c.r || this->g != _c.g || this->b != _c.b || this->a != _c.a;
+    }
 };
 
 struct Settled{
@@ -32,9 +41,11 @@ struct Settled{
 };
 
 using um_map_poli = std::unordered_map<fcountries, Settled>;
+using um_map_sett = std::unordered_map<void*, fcountries>;
 
 class CountryBorder{
     um_map_poli    um_borders;
+    um_map_sett    um_detector;
     void           *mk_map;
 public:
     CountryBorder() : mk_map(nullptr){}
@@ -47,14 +58,15 @@ public:
     void disconnect_map();
     
     std::string loadFile(const std::string&);
-    void setCountryBorder(const fcountries&, const std::string&);
+    void setCountryBorder(const fcountries&, const std::string&, const Colors& = Colors());
     
     um_map_poli &getMapBorders();
+    um_map_sett &getMapDetector();
     
     void show_boundary(const fcountries&);
     void hide_boundary(const fcountries&);
     
-    void set_color_boundery(const Colors&);
+    void set_color_boundery(const fcountries&, const Colors&);
     
 private:
     void Destroy();

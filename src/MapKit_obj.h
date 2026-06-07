@@ -22,6 +22,7 @@ class MapKitBridge;
 @interface MapKitDelegate : NSObject <MKMapViewDelegate>
 @property um_map_func *um_func;
 @property um_map_poli *um_poli;
+@property um_map_sett *um_sett;
 @end
 
 class MapKitBridge{

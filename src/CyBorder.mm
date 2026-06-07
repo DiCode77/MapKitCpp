@@ -27,7 +27,7 @@ std::string CountryBorder::loadFile(const std::string &dir){
     return text;
 }
 
-void CountryBorder::setCountryBorder(const fcountries &city, const std::string &d_json){
+void CountryBorder::setCountryBorder(const fcountries &city, const std::string &d_json, const Colors &colors){
     if (!this->um_borders.count(city)){
         std::vector<std::vector<Geodata>> vec;
         bool mkp = this->GetMKPolygon(vec, d_json);
@@ -36,9 +36,15 @@ void CountryBorder::setCountryBorder(const fcountries &city, const std::string &
             Settled sld;
             
             for (auto it = vec.begin(); it != vec.end(); it++){
-                sld.country.emplace_back(reinterpret_cast<void*>([[MKPolygon polygonWithCoordinates:(CLLocationCoordinate2D*)it->data() count:it->size()] retain]));
+                void *poligon = reinterpret_cast<void*>([[MKPolygon polygonWithCoordinates:(CLLocationCoordinate2D*)it->data() count:it->size()] retain]);
+                
+                sld.country.emplace_back(poligon);
+                this->um_detector.insert(std::make_pair(poligon, city));
             }
-            this->um_borders.insert(std::make_pair(city, Settled{ .country = std::move(sld.country) }));
+            this->um_borders.insert(std::make_pair(city, Settled{
+                .country = std::move(sld.country),
+                .color = colors
+            }));
         }else{
             printf("%s\n", "Error created country border, method 'setCountryBorder(..., ...)'");
         }
@@ -47,6 +53,10 @@ void CountryBorder::setCountryBorder(const fcountries &city, const std::string &
 
 um_map_poli &CountryBorder::getMapBorders(){
     return this->um_borders;
+}
+
+um_map_sett &CountryBorder::getMapDetector(){
+    return this->um_detector;
 }
 
 void CountryBorder::show_boundary(const fcountries &cnt){
@@ -79,7 +89,17 @@ void CountryBorder::hide_boundary(const fcountries &cnt){
     }
 }
 
-void CountryBorder::set_color_boundery(const Colors &color){}
+void CountryBorder::set_color_boundery(const fcountries &coy, const Colors &color){
+    if (auto it = this->um_borders.find(coy); it != this->um_borders.end()){
+        MKMapView *map = reinterpret_cast<MKMapView*>(this->mk_map);
+        it->second.color = color;
+        for (auto vec_it = it->second.country.begin(); vec_it != it->second.country.end(); vec_it++){
+            MKPolygon *pl = reinterpret_cast<MKPolygon*>(*vec_it);
+            [map removeOverlay:pl];
+            [map addOverlay:pl];
+        }
+    }
+}
 
 void CountryBorder::Destroy(){
     if (!this->um_borders.empty()){
@@ -89,6 +109,7 @@ void CountryBorder::Destroy(){
             }
         }
         this->um_borders.clear();
+        this->um_detector.clear();
     }
 }
 

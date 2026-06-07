@@ -11,27 +11,25 @@
 }
 
 - (MKOverlayRenderer*) mapView:(MKMapView*)mapView rendererForOverlay: (id<MKOverlay>)overlay{
-if ([overlay isKindOfClass: [MKPolygon class]]){
-
+    if ([overlay isKindOfClass: [MKPolygon class]]){
         MKPolygonRenderer* renderer = [[MKPolygonRenderer alloc] initWithPolygon: (MKPolygon*)overlay];
-
-        renderer.strokeColor = [NSColor yellowColor];
-  //  renderer.fillColor = [[NSColor yellowColor] colorWithAlphaComponent: 0.15];
-    
-//    renderer.lineWidth = 1.0;
- //   renderer.fillColor = nil;
- //   renderer.lineDashPattern = @[@10, @5];
-    
-    renderer.strokeColor = [NSColor yellowColor];
-
-    renderer.lineWidth = 1.0;
-    
+        if (auto it = self.um_sett->find(reinterpret_cast<void*>(overlay)); it != self.um_sett->end()){
+            if (auto p_it = self.um_poli->find(it->second); p_it != self.um_poli->end()){
+                Colors &colore = p_it->second.color;
+                if (p_it->second.color != Colors()){
+                    const Colors &color = p_it->second.color;
+                    renderer.strokeColor = [NSColor colorWithCalibratedRed:color.r / 255.0
+                                                                     green:color.g / 255.0
+                                                                      blue:color.b / 255.0
+                                                                     alpha:color.a];
+                }else{
+                    renderer.strokeColor = [NSColor yellowColor];
+                }
+            }
+        }
         return renderer;
-
     }
-
     return nil;
-
 }
 
 @end
@@ -248,6 +246,7 @@ void MapKitBridge::CreatedDelegatedMapKitBridge(){
         this->mk_delegate = [[MapKitDelegate alloc] init];
         this->mk_delegate.um_func = &this->um_func;
         this->mk_delegate.um_poli = &this->cy_border().getMapBorders();
+        this->mk_delegate.um_sett = &this->cy_border().getMapDetector();
         this->map_view.delegate = this->mk_delegate;
     }
 }
