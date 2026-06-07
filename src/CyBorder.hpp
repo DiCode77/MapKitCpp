@@ -25,19 +25,21 @@ struct Colors{
     float b = 0.f;
     float a = 1.0f;
     
-    bool operator== (const Colors &_c){
+    bool operator== (const Colors &_c) const{
         return this->r == _c.r && this->g == _c.g && this->b == _c.b && this->a == _c.a;
     }
     
-    bool operator!= (const Colors &_c){
+    bool operator!= (const Colors &_c) const{
         return this->r != _c.r || this->g != _c.g || this->b != _c.b || this->a != _c.a;
     }
 };
 
 struct Settled{
     std::vector<void*> country;
-    bool visible = false;
+    bool   visible = false;
     Colors color;
+    Colors fill_color;
+    float  line_width = 1.0;
 };
 
 using um_map_poli = std::unordered_map<fcountries, Settled>;
@@ -67,6 +69,7 @@ public:
     void hide_boundary(const fcountries&);
     
     void set_color_boundery(const fcountries&, const Colors&);
+    void set_fill_color(const fcountries&, const Colors&);
     
 private:
     void Destroy();

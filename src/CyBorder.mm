@@ -91,12 +91,30 @@ void CountryBorder::hide_boundary(const fcountries &cnt){
 
 void CountryBorder::set_color_boundery(const fcountries &coy, const Colors &color){
     if (auto it = this->um_borders.find(coy); it != this->um_borders.end()){
-        MKMapView *map = reinterpret_cast<MKMapView*>(this->mk_map);
-        it->second.color = color;
-        for (auto vec_it = it->second.country.begin(); vec_it != it->second.country.end(); vec_it++){
-            MKPolygon *pl = reinterpret_cast<MKPolygon*>(*vec_it);
-            [map removeOverlay:pl];
-            [map addOverlay:pl];
+        if (Colors &m_color = it->second.color; m_color != color){
+            m_color = color;
+            
+            MKMapView *map = reinterpret_cast<MKMapView*>(this->mk_map);
+            for (auto vec_it = it->second.country.begin(); vec_it != it->second.country.end(); vec_it++){
+                MKPolygon *pl = reinterpret_cast<MKPolygon*>(*vec_it);
+                [map removeOverlay:pl];
+                [map addOverlay:pl];
+            }
+        }
+    }
+}
+
+void CountryBorder::set_fill_color(const fcountries &coy, const Colors &fcolor){
+    if (auto it = this->um_borders.find(coy); it != this->um_borders.end()){
+        if (Colors &m_fcolor = it->second.fill_color; m_fcolor != fcolor){
+            m_fcolor = fcolor;
+            
+            MKMapView *map = reinterpret_cast<MKMapView*>(this->mk_map);
+            for (auto vec_it = it->second.country.begin(); vec_it != it->second.country.end(); vec_it++){
+                MKPolygon *pl = reinterpret_cast<MKPolygon*>(*vec_it);
+                [map removeOverlay:pl];
+                [map addOverlay:pl];
+            }
         }
     }
 }
