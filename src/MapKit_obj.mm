@@ -36,6 +36,14 @@
                 else{
                     renderer.fillColor = nil;
                 }
+                
+                const float &lwidth = p_it->second.line_width;
+                const float lw_def  = 1.0f;
+                if (lwidth != lw_def){
+                    renderer.lineWidth = lwidth;
+                }else{
+                    renderer.lineWidth = lw_def;
+                }
             }
         }
         return renderer;

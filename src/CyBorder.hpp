@@ -39,7 +39,7 @@ struct Settled{
     bool   visible = false;
     Colors color;
     Colors fill_color;
-    float  line_width = 1.0;
+    float  line_width = 1.0f;
 };
 
 using um_map_poli = std::unordered_map<fcountries, Settled>;
@@ -70,6 +70,7 @@ public:
     
     void set_color_boundery(const fcountries&, const Colors&);
     void set_fill_color(const fcountries&, const Colors&);
+    void set_line_width(const fcountries&, const float&);
     
 private:
     void Destroy();

@@ -119,6 +119,21 @@ void CountryBorder::set_fill_color(const fcountries &coy, const Colors &fcolor){
     }
 }
 
+void CountryBorder::set_line_width(const fcountries &coy, const float &lwidth){
+    if (auto it = this->um_borders.find(coy); it != this->um_borders.end()){
+        if (float &m_lwidth = it->second.line_width; m_lwidth != lwidth){
+            m_lwidth = lwidth;
+            
+            MKMapView *map = reinterpret_cast<MKMapView*>(this->mk_map);
+            for (auto vec_it = it->second.country.begin(); vec_it != it->second.country.end(); vec_it++){
+                MKPolygon *pl = reinterpret_cast<MKPolygon*>(*vec_it);
+                [map removeOverlay:pl];
+                [map addOverlay:pl];
+            }
+        }
+    }
+}
+
 void CountryBorder::Destroy(){
     if (!this->um_borders.empty()){
         for (auto &[kay, val] : this->um_borders){
