@@ -43,7 +43,8 @@ void CountryBorder::setCountryBorder(const fcountries &city, const std::string &
             }
             this->um_borders.insert(std::make_pair(city, Settled{
                 .country = std::move(sld.country),
-                .color = colors
+                .name    = this->GetCountryName(d_json),
+                .color   = colors
             }));
         }else{
             printf("%s\n", "Error created country border, method 'setCountryBorder(..., ...)'");
@@ -134,6 +135,34 @@ void CountryBorder::set_line_width(const fcountries &coy, const float &lwidth){
     }
 }
 
+Colors CountryBorder::get_color_boundery(const fcountries &coy) const{
+    if (auto it = this->um_borders.find(coy); it != this->um_borders.end()){
+        return it->second.color;
+    }
+    return Colors();
+}
+
+Colors CountryBorder::get_fill_color(const fcountries &coy) const{
+    if (auto it = this->um_borders.find(coy); it != this->um_borders.end()){
+        return it->second.fill_color;
+    }
+    return Colors();
+}
+
+float CountryBorder::get_line_width(const fcountries &coy) const{
+    if (auto it = this->um_borders.find(coy); it != this->um_borders.end()){
+        return it->second.line_width;
+    }
+    return 0.f;
+}
+
+std::string CountryBorder::get_country_name(const fcountries &coy) const{
+    if (auto it = this->um_borders.find(coy); it != this->um_borders.end()){
+        return it->second.name;
+    }
+    return std::string();
+}
+
 void CountryBorder::Destroy(){
     if (!this->um_borders.empty()){
         for (auto &[kay, val] : this->um_borders){
@@ -194,4 +223,33 @@ bool CountryBorder::GetMKPolygon(std::vector<std::vector<Geodata>> &vec_loc, con
         }
     }
     return false;
+}
+
+std::string CountryBorder::GetCountryName(const std::string &json){
+    if (!json.empty()){
+        nlohmann::json j_root;
+        try {
+            j_root = nlohmann::json::parse(json);
+        } catch (const nlohmann::json::parse_error &error){
+            printf("Error parsing JSON data while retrieving the country name: %s\n", error.what());
+        }
+        
+        if (!j_root.empty()){
+            if (!j_root.count("features"))
+                return std::string();
+            
+            auto &feature = j_root["features"][0];
+            
+            if (!feature.count("properties"))
+                return std::string();
+            
+            auto &properties = feature["properties"];
+            
+            if (!properties.count("shapeName"))
+                return std::string();
+            
+            return properties["shapeName"].get<std::string>();
+        }
+    }
+    return std::string();
 }

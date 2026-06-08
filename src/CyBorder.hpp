@@ -36,6 +36,7 @@ struct Colors{
 
 struct Settled{
     std::vector<void*> country;
+    std::string name;
     bool   visible = false;
     Colors color;
     Colors fill_color;
@@ -72,9 +73,15 @@ public:
     void set_fill_color(const fcountries&, const Colors&);
     void set_line_width(const fcountries&, const float&);
     
+    Colors get_color_boundery(const fcountries&) const;
+    Colors get_fill_color(const fcountries&) const;
+    float  get_line_width(const fcountries&) const;
+    std::string get_country_name(const fcountries&) const;
+    
 private:
     void Destroy();
     bool GetMKPolygon(std::vector<std::vector<Geodata>>&, const std::string&);
+    std::string GetCountryName(const std::string&);
 };
 
 #endif
