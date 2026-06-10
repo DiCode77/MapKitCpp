@@ -73,16 +73,19 @@ using um_map_sett = std::unordered_map<void*, fcountries>;
 using um_reg_offi = std::unordered_map<fcountries, std::vector<RegionOf>>;
 using um_det_reg  = std::unordered_map<void*, fcountries>;
 
+struct StPoligon{
+    um_map_poli    um_borders;
+    um_map_sett    um_detector;
+};
+
 struct StRegionOf{
     um_reg_offi region_off;
     um_det_reg  detect_reg;
 };
 
 class CountryBorder{
-    um_map_poli    um_borders;
-    um_map_sett    um_detector;
     void           *mk_map;
-    
+    StPoligon  st_poligon;
     StRegionOf st_region;
 public:
     CountryBorder() : mk_map(nullptr){}

@@ -28,7 +28,7 @@ std::string CountryBorder::loadFile(const std::string &dir){
 }
 
 void CountryBorder::setCountryBorder(const fcountries &city, const std::string &d_json, const Colors &colors){
-    if (!this->um_borders.count(city)){
+    if (!this->st_poligon.um_borders.count(city)){
         std::vector<std::vector<Geodata>> vec;
         bool mkp = this->GetMKPolygon(vec, d_json);
         
@@ -39,9 +39,9 @@ void CountryBorder::setCountryBorder(const fcountries &city, const std::string &
                 void *poligon = reinterpret_cast<void*>([[MKPolygon polygonWithCoordinates:(CLLocationCoordinate2D*)it->data() count:it->size()] retain]);
                 
                 sld.country.emplace_back(poligon);
-                this->um_detector.insert(std::make_pair(poligon, city));
+                this->st_poligon.um_detector.insert(std::make_pair(poligon, city));
             }
-            this->um_borders.insert(std::make_pair(city, Settled{
+            this->st_poligon.um_borders.insert(std::make_pair(city, Settled{
                 .country = std::move(sld.country),
                 .name    = this->GetCountryName(d_json),
                 .color   = colors
@@ -96,15 +96,15 @@ void CountryBorder::setRegionOffices(const fcountries &coy, const std::string &d
 }
 
 um_map_poli &CountryBorder::getMapBorders(){
-    return this->um_borders;
+    return this->st_poligon.um_borders;
 }
 
 um_map_sett &CountryBorder::getMapDetector(){
-    return this->um_detector;
+    return this->st_poligon.um_detector;
 }
 
 void CountryBorder::show_boundary(const fcountries &cnt){
-    if (auto it = this->um_borders.find(cnt); it != this->um_borders.end()){
+    if (auto it = this->st_poligon.um_borders.find(cnt); it != this->st_poligon.um_borders.end()){
         if (it->second.visible == false){
             it->second.visible = true;
             MKMapView *map = reinterpret_cast<MKMapView*>(this->mk_map);
@@ -119,11 +119,11 @@ void CountryBorder::show_boundary(const fcountries &cnt){
 }
 
 void CountryBorder::hide_boundary(const fcountries &cnt){
-    if (auto it = this->um_borders.find(cnt); it != this->um_borders.end()){
+    if (auto it = this->st_poligon.um_borders.find(cnt); it != this->st_poligon.um_borders.end()){
         if (it->second.visible == true){
             it->second.visible = false;
-            MKMapView *map = reinterpret_cast<MKMapView*>(this->mk_map);
             
+            MKMapView *map = reinterpret_cast<MKMapView*>(this->mk_map);
             for (auto p_it = it->second.country.begin(); p_it != it->second.country.end(); p_it++){
                 MKPolygon *pl = reinterpret_cast<MKPolygon*>(*p_it);
                 [map removeOverlay:pl];
@@ -134,87 +134,93 @@ void CountryBorder::hide_boundary(const fcountries &cnt){
 }
 
 void CountryBorder::set_color_boundery(const fcountries &coy, const Colors &color){
-    if (auto it = this->um_borders.find(coy); it != this->um_borders.end()){
+    if (auto it = this->st_poligon.um_borders.find(coy); it != this->st_poligon.um_borders.end()){
         if (Colors &m_color = it->second.color; m_color != color){
             m_color = color;
             
-            MKMapView *map = reinterpret_cast<MKMapView*>(this->mk_map);
-            for (auto vec_it = it->second.country.begin(); vec_it != it->second.country.end(); vec_it++){
-                MKPolygon *pl = reinterpret_cast<MKPolygon*>(*vec_it);
-                [map removeOverlay:pl];
-                [map addOverlay:pl];
+            if (it->second.visible){
+                MKMapView *map = reinterpret_cast<MKMapView*>(this->mk_map);
+                for (auto vec_it = it->second.country.begin(); vec_it != it->second.country.end(); vec_it++){
+                    MKPolygon *pl = reinterpret_cast<MKPolygon*>(*vec_it);
+                    [map removeOverlay:pl];
+                    [map addOverlay:pl];
+                }
             }
         }
     }
 }
 
 void CountryBorder::set_fill_color(const fcountries &coy, const Colors &fcolor){
-    if (auto it = this->um_borders.find(coy); it != this->um_borders.end()){
+    if (auto it = this->st_poligon.um_borders.find(coy); it != this->st_poligon.um_borders.end()){
         if (Colors &m_fcolor = it->second.fill_color; m_fcolor != fcolor){
             m_fcolor = fcolor;
             
-            MKMapView *map = reinterpret_cast<MKMapView*>(this->mk_map);
-            for (auto vec_it = it->second.country.begin(); vec_it != it->second.country.end(); vec_it++){
-                MKPolygon *pl = reinterpret_cast<MKPolygon*>(*vec_it);
-                [map removeOverlay:pl];
-                [map addOverlay:pl];
+            if (it->second.visible){
+                MKMapView *map = reinterpret_cast<MKMapView*>(this->mk_map);
+                for (auto vec_it = it->second.country.begin(); vec_it != it->second.country.end(); vec_it++){
+                    MKPolygon *pl = reinterpret_cast<MKPolygon*>(*vec_it);
+                    [map removeOverlay:pl];
+                    [map addOverlay:pl];
+                }
             }
         }
     }
 }
 
 void CountryBorder::set_line_width(const fcountries &coy, const float &lwidth){
-    if (auto it = this->um_borders.find(coy); it != this->um_borders.end()){
+    if (auto it = this->st_poligon.um_borders.find(coy); it != this->st_poligon.um_borders.end()){
         if (float &m_lwidth = it->second.line_width; m_lwidth != lwidth){
             m_lwidth = lwidth;
             
-            MKMapView *map = reinterpret_cast<MKMapView*>(this->mk_map);
-            for (auto vec_it = it->second.country.begin(); vec_it != it->second.country.end(); vec_it++){
-                MKPolygon *pl = reinterpret_cast<MKPolygon*>(*vec_it);
-                [map removeOverlay:pl];
-                [map addOverlay:pl];
+            if (it->second.visible){
+                MKMapView *map = reinterpret_cast<MKMapView*>(this->mk_map);
+                for (auto vec_it = it->second.country.begin(); vec_it != it->second.country.end(); vec_it++){
+                    MKPolygon *pl = reinterpret_cast<MKPolygon*>(*vec_it);
+                    [map removeOverlay:pl];
+                    [map addOverlay:pl];
+                }
             }
         }
     }
 }
 
 Colors CountryBorder::get_color_boundery(const fcountries &coy) const{
-    if (auto it = this->um_borders.find(coy); it != this->um_borders.end()){
+    if (auto it = this->st_poligon.um_borders.find(coy); it != this->st_poligon.um_borders.end()){
         return it->second.color;
     }
     return Colors();
 }
 
 Colors CountryBorder::get_fill_color(const fcountries &coy) const{
-    if (auto it = this->um_borders.find(coy); it != this->um_borders.end()){
+    if (auto it = this->st_poligon.um_borders.find(coy); it != this->st_poligon.um_borders.end()){
         return it->second.fill_color;
     }
     return Colors();
 }
 
 float CountryBorder::get_line_width(const fcountries &coy) const{
-    if (auto it = this->um_borders.find(coy); it != this->um_borders.end()){
+    if (auto it = this->st_poligon.um_borders.find(coy); it != this->st_poligon.um_borders.end()){
         return it->second.line_width;
     }
     return 0.f;
 }
 
 std::string CountryBorder::get_country_name(const fcountries &coy) const{
-    if (auto it = this->um_borders.find(coy); it != this->um_borders.end()){
+    if (auto it = this->st_poligon.um_borders.find(coy); it != this->st_poligon.um_borders.end()){
         return it->second.name;
     }
     return std::string();
 }
 
 void CountryBorder::Destroy(){
-    if (!this->um_borders.empty()){
-        for (auto &[kay, val] : this->um_borders){
+    if (!this->st_poligon.um_borders.empty()){
+        for (auto &[kay, val] : this->st_poligon.um_borders){
             for (auto it = val.country.begin(); it != val.country.end(); it++){
                 [reinterpret_cast<MKPolygon*>(*it) release];
             }
         }
-        this->um_borders.clear();
-        this->um_detector.clear();
+        this->st_poligon.um_borders.clear();
+        this->st_poligon.um_detector.clear();
     }
 }
 
@@ -374,6 +380,3 @@ std::string CountryBorder::GetCountryName(const std::string &json){
     }
     return std::string();
 }
-
-
-// std::vector<std::vector<std::vector<Geodata>>>
