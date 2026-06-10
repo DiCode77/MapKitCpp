@@ -12,6 +12,7 @@
 #include <fstream>
 #include <nlohmann/json.hpp>
 #include <vector>
+#include <ranges>
 #include "Parameters.hpp"
 
 struct Geodata{
@@ -43,13 +44,46 @@ struct Settled{
     float  line_width = 1.0f;
 };
 
+struct RegionOf{
+    std::vector<void*> region;
+    std::string sh_name;
+    std::string sh_iso;
+    std::string sh_id;
+    std::string sh_group;
+    std::string sh_type;
+    
+    Colors color_reg;
+    Colors color_fill;
+    bool  visible = false;
+    float line_width = 1.0f;
+};
+
+struct JsonRegionData{
+    std::vector<std::vector<std::vector<Geodata>>> countours;
+    std::string sh_name;
+    std::string sh_iso;
+    std::string sh_id;
+    std::string sh_group;
+    std::string sh_type;
+};
+
 using um_map_poli = std::unordered_map<fcountries, Settled>;
 using um_map_sett = std::unordered_map<void*, fcountries>;
+
+using um_reg_offi = std::unordered_map<fcountries, std::vector<RegionOf>>;
+using um_det_reg  = std::unordered_map<void*, fcountries>;
+
+struct StRegionOf{
+    um_reg_offi region_off;
+    um_det_reg  detect_reg;
+};
 
 class CountryBorder{
     um_map_poli    um_borders;
     um_map_sett    um_detector;
     void           *mk_map;
+    
+    StRegionOf st_region;
 public:
     CountryBorder() : mk_map(nullptr){}
     CountryBorder(void *map): mk_map(map){}
@@ -62,6 +96,7 @@ public:
     
     std::string loadFile(const std::string&);
     void setCountryBorder(const fcountries&, const std::string&, const Colors& = Colors());
+    void setRegionOffices(const fcountries&, const std::string&, const Colors& = Colors());
     
     um_map_poli &getMapBorders();
     um_map_sett &getMapDetector();
@@ -81,6 +116,7 @@ public:
 private:
     void Destroy();
     bool GetMKPolygon(std::vector<std::vector<Geodata>>&, const std::string&);
+    bool GetMkRegionOf(std::vector<JsonRegionData>&, const std::string&);
     std::string GetCountryName(const std::string&);
 };
 
