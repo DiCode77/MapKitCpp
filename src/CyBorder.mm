@@ -16,6 +16,10 @@ void CountryBorder::disconnect_map(){
     this->mk_map = nullptr;
 }
 
+void CountryBorder::clear(){
+    this->Destroy();
+}
+
 std::string CountryBorder::loadFile(const std::string &dir){
     std::ifstream file(dir);
     std::string   text;
@@ -34,14 +38,16 @@ void CountryBorder::setCountryBorder(const fcountries &city, const std::string &
         
         if (mkp){
             Settled sld;
+            um_map_poli &m_pol = this->st_poligon.um_borders;
+            um_map_dete &m_det = this->st_poligon.um_detector;
             
-            for (auto it = vec.begin(); it != vec.end(); it++){
-                void *poligon = reinterpret_cast<void*>([[MKPolygon polygonWithCoordinates:(CLLocationCoordinate2D*)it->data() count:it->size()] retain]);
-                
+            std::ranges::for_each(vec.begin(), vec.end(), [&sld, &m_det, &city](const std::vector<Geodata> &m_vec){
+                void *poligon = reinterpret_cast<void*>([[MKPolygon polygonWithCoordinates:(CLLocationCoordinate2D*)m_vec.data() count:m_vec.size()] retain]);
                 sld.country.emplace_back(poligon);
-                this->st_poligon.um_detector.insert(std::make_pair(poligon, city));
-            }
-            this->st_poligon.um_borders.insert(std::make_pair(city, Settled{
+                m_det.insert(std::make_pair(poligon, city));
+            });
+            
+            m_pol.insert(std::make_pair(city, Settled{
                 .country = std::move(sld.country),
                 .name    = this->GetCountryName(d_json),
                 .color   = colors
@@ -99,20 +105,29 @@ um_map_poli &CountryBorder::getMapBorders(){
     return this->st_poligon.um_borders;
 }
 
-um_map_sett &CountryBorder::getMapDetector(){
+um_map_dete &CountryBorder::getMapDetector(){
     return this->st_poligon.um_detector;
+}
+
+StPoligon &CountryBorder::getStPoligon(){
+    return this->st_poligon;
+}
+
+StRegionOf &CountryBorder::getStRegionOf(){
+    return this->st_region;
 }
 
 void CountryBorder::show_boundary(const fcountries &cnt){
     if (auto it = this->st_poligon.um_borders.find(cnt); it != this->st_poligon.um_borders.end()){
         if (it->second.visible == false){
             it->second.visible = true;
-            MKMapView *map = reinterpret_cast<MKMapView*>(this->mk_map);
             
-            for (auto p_it = it->second.country.begin(); p_it != it->second.country.end(); p_it++){
-                MKPolygon *pl = reinterpret_cast<MKPolygon*>(*p_it);
-                [map addOverlay:pl];
-            }
+            MKMapView *map    = reinterpret_cast<MKMapView*>(this->mk_map);
+            const auto &c_vec = it->second.country;
+            
+            std::ranges::for_each(c_vec.begin(), c_vec.end(), [&](void *data){
+                [map addOverlay:reinterpret_cast<MKPolygon*>(data)];
+            });
         }
         
     }
@@ -123,14 +138,22 @@ void CountryBorder::hide_boundary(const fcountries &cnt){
         if (it->second.visible == true){
             it->second.visible = false;
             
-            MKMapView *map = reinterpret_cast<MKMapView*>(this->mk_map);
-            for (auto p_it = it->second.country.begin(); p_it != it->second.country.end(); p_it++){
-                MKPolygon *pl = reinterpret_cast<MKPolygon*>(*p_it);
-                [map removeOverlay:pl];
-            }
+            MKMapView *map    = reinterpret_cast<MKMapView*>(this->mk_map);
+            const auto &c_vec = it->second.country;
+            
+            std::ranges::for_each(c_vec.begin(), c_vec.end(), [&](void *data){
+                [map removeOverlay:reinterpret_cast<MKPolygon*>(data)];
+            });
         }
         
     }
+}
+
+bool CountryBorder::is_show(const fcountries &coy){
+    if (auto it = this->st_poligon.um_borders.find(coy); it != this->st_poligon.um_borders.end()){
+        return it->second.visible;
+    }
+    return false;
 }
 
 void CountryBorder::set_color_boundery(const fcountries &coy, const Colors &color){
@@ -139,12 +162,13 @@ void CountryBorder::set_color_boundery(const fcountries &coy, const Colors &colo
             m_color = color;
             
             if (it->second.visible){
-                MKMapView *map = reinterpret_cast<MKMapView*>(this->mk_map);
-                for (auto vec_it = it->second.country.begin(); vec_it != it->second.country.end(); vec_it++){
-                    MKPolygon *pl = reinterpret_cast<MKPolygon*>(*vec_it);
-                    [map removeOverlay:pl];
-                    [map addOverlay:pl];
-                }
+                MKMapView *map    = reinterpret_cast<MKMapView*>(this->mk_map);
+                const auto &c_vec = it->second.country;
+                
+                std::ranges::for_each(c_vec.begin(), c_vec.end(), [&](void *data){
+                    [map removeOverlay:reinterpret_cast<MKPolygon*>(data)];
+                    [map addOverlay:reinterpret_cast<MKPolygon*>(data)];
+                });
             }
         }
     }
@@ -156,12 +180,13 @@ void CountryBorder::set_fill_color(const fcountries &coy, const Colors &fcolor){
             m_fcolor = fcolor;
             
             if (it->second.visible){
-                MKMapView *map = reinterpret_cast<MKMapView*>(this->mk_map);
-                for (auto vec_it = it->second.country.begin(); vec_it != it->second.country.end(); vec_it++){
-                    MKPolygon *pl = reinterpret_cast<MKPolygon*>(*vec_it);
-                    [map removeOverlay:pl];
-                    [map addOverlay:pl];
-                }
+                MKMapView *map    = reinterpret_cast<MKMapView*>(this->mk_map);
+                const auto &c_vec = it->second.country;
+                
+                std::ranges::for_each(c_vec.begin(), c_vec.end(), [&](void *data){
+                    [map removeOverlay:reinterpret_cast<MKPolygon*>(data)];
+                    [map addOverlay:reinterpret_cast<MKPolygon*>(data)];
+                });
             }
         }
     }
@@ -173,12 +198,13 @@ void CountryBorder::set_line_width(const fcountries &coy, const float &lwidth){
             m_lwidth = lwidth;
             
             if (it->second.visible){
-                MKMapView *map = reinterpret_cast<MKMapView*>(this->mk_map);
-                for (auto vec_it = it->second.country.begin(); vec_it != it->second.country.end(); vec_it++){
-                    MKPolygon *pl = reinterpret_cast<MKPolygon*>(*vec_it);
-                    [map removeOverlay:pl];
-                    [map addOverlay:pl];
-                }
+                MKMapView *map    = reinterpret_cast<MKMapView*>(this->mk_map);
+                const auto &c_vec = it->second.country;
+                
+                std::ranges::for_each(c_vec.begin(), c_vec.end(), [&](void *data){
+                    [map removeOverlay:reinterpret_cast<MKPolygon*>(data)];
+                    [map addOverlay:reinterpret_cast<MKPolygon*>(data)];
+                });
             }
         }
     }
@@ -213,14 +239,24 @@ std::string CountryBorder::get_country_name(const fcountries &coy) const{
 }
 
 void CountryBorder::Destroy(){
-    if (!this->st_poligon.um_borders.empty()){
-        for (auto &[kay, val] : this->st_poligon.um_borders){
-            for (auto it = val.country.begin(); it != val.country.end(); it++){
-                [reinterpret_cast<MKPolygon*>(*it) release];
-            }
-        }
+    if (!this->st_poligon.um_detector.empty()){
+        auto m_keys = this->st_poligon.um_detector | std::views::keys;
+        std::ranges::for_each(m_keys.begin(), m_keys.end(), [](void *k_data){
+            [reinterpret_cast<MKPolygon*>(k_data) release];
+        });
+        
         this->st_poligon.um_borders.clear();
         this->st_poligon.um_detector.clear();
+    }
+    
+    if (!this->st_region.detect_reg.empty()){
+        auto m_keys = this->st_region.detect_reg | std::views::keys;
+        std::ranges::for_each(m_keys.begin(), m_keys.end(), [](void *k_data){
+            [reinterpret_cast<MKPolygon*>(k_data) release];
+        });
+        
+        this->st_region.region_off.clear();
+        this->st_region.detect_reg.clear();
     }
 }
 

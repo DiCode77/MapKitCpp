@@ -130,7 +130,9 @@ enum class fcountries{
     slovakia,
     hungary,
     romania,
-    usa
+    usa,
+    china,
+    end
 };
 
 

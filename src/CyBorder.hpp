@@ -68,14 +68,14 @@ struct JsonRegionData{
 };
 
 using um_map_poli = std::unordered_map<fcountries, Settled>;
-using um_map_sett = std::unordered_map<void*, fcountries>;
+using um_map_dete = std::unordered_map<void*, fcountries>;
 
 using um_reg_offi = std::unordered_map<fcountries, std::vector<RegionOf>>;
 using um_det_reg  = std::unordered_map<void*, fcountries>;
 
 struct StPoligon{
     um_map_poli    um_borders;
-    um_map_sett    um_detector;
+    um_map_dete    um_detector;
 };
 
 struct StRegionOf{
@@ -84,7 +84,7 @@ struct StRegionOf{
 };
 
 class CountryBorder{
-    void           *mk_map;
+    void       *mk_map;
     StPoligon  st_poligon;
     StRegionOf st_region;
 public:
@@ -96,16 +96,21 @@ public:
     
     void connect_map(void*);
     void disconnect_map();
+    void clear();
     
     std::string loadFile(const std::string&);
     void setCountryBorder(const fcountries&, const std::string&, const Colors& = Colors());
     void setRegionOffices(const fcountries&, const std::string&, const Colors& = Colors());
     
     um_map_poli &getMapBorders();
-    um_map_sett &getMapDetector();
+    um_map_dete &getMapDetector();
+    
+    StPoligon  &getStPoligon();
+    StRegionOf &getStRegionOf();
     
     void show_boundary(const fcountries&);
     void hide_boundary(const fcountries&);
+    bool is_show(const fcountries&);
     
     void set_color_boundery(const fcountries&, const Colors&);
     void set_fill_color(const fcountries&, const Colors&);

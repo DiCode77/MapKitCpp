@@ -13,8 +13,8 @@
 - (MKOverlayRenderer*) mapView:(MKMapView*)mapView rendererForOverlay: (id<MKOverlay>)overlay{
     if ([overlay isKindOfClass: [MKPolygon class]]){
         MKPolygonRenderer* renderer = [[MKPolygonRenderer alloc] initWithPolygon: (MKPolygon*)overlay];
-        if (auto it = self.um_sett->find(reinterpret_cast<void*>(overlay)); it != self.um_sett->end()){
-            if (auto p_it = self.um_poli->find(it->second); p_it != self.um_poli->end()){
+        if (auto it = self.m_poligon->um_detector.find(reinterpret_cast<void*>(overlay)); it != self.m_poligon->um_detector.end()){
+            if (auto p_it = self.m_poligon->um_borders.find(it->second); p_it != self.m_poligon->um_borders.end()){
                 const Colors &colore = p_it->second.color;
                 if (colore != Colors()){
                     const Colors &color = p_it->second.color;
@@ -114,6 +114,7 @@ MapKitBridge::MapKitBridge(void *ns_vw, const fpoint &point, const fsize &size, 
 
     this->setMapType(m_type); // Here we specify the map type.
     this->CreatedDelegatedMapKitBridge();
+    this->ConnectToDelegateMethods();
     this->m_cy_borders.connect_map(reinterpret_cast<void*>(this->map_view));
     [this->ns_view addSubview:this->map_view];
 }
@@ -263,9 +264,13 @@ CountryBorder &MapKitBridge::cy_border(){
 void MapKitBridge::CreatedDelegatedMapKitBridge(){
     if (this->mk_delegate == nil){
         this->mk_delegate = [[MapKitDelegate alloc] init];
-        this->mk_delegate.um_func = &this->um_func;
-        this->mk_delegate.um_poli = &this->cy_border().getMapBorders();
-        this->mk_delegate.um_sett = &this->cy_border().getMapDetector();
         this->map_view.delegate = this->mk_delegate;
+    }
+}
+
+void MapKitBridge::ConnectToDelegateMethods(){
+    if (this->mk_delegate != nil){
+        this->mk_delegate.um_func = &this->um_func;
+        this->mk_delegate.m_poligon = &this->cy_border().getStPoligon();
     }
 }
