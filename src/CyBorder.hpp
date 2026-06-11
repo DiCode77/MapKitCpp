@@ -96,14 +96,11 @@ public:
     
     void connect_map(void*);
     void disconnect_map();
-    void clear();
+    void clear_entire_map(); // In addition to removing everything that has been added to the map, this method will also clear all added objects.
     
     std::string loadFile(const std::string&);
-    void setCountryBorder(const fcountries&, const std::string&, const Colors& = Colors());
-    void setRegionOffices(const fcountries&, const std::string&, const Colors& = Colors());
-    
-    um_map_poli &getMapBorders();
-    um_map_dete &getMapDetector();
+    void setCountryBorder(const fcountries&, const std::string&, const Colors& = Colors()); // Add a boundary object for a single country.
+    void setRegionOffices(const fcountries&, const std::string&, const Colors& = Colors()); // Add a polygon feature for the regional settlements of the specified country.
     
     StPoligon  &getStPoligon();
     StRegionOf &getStRegionOf();
@@ -120,6 +117,8 @@ public:
     Colors get_fill_color(const fcountries&) const;
     float  get_line_width(const fcountries&) const;
     std::string get_country_name(const fcountries&) const;
+    
+    std::vector<fcountries> get_all_keys_boundary() const;
     
 private:
     void Destroy();

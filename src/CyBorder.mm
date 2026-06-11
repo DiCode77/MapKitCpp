@@ -16,7 +16,7 @@ void CountryBorder::disconnect_map(){
     this->mk_map = nullptr;
 }
 
-void CountryBorder::clear(){
+void CountryBorder::clear_entire_map(){
     this->Destroy();
 }
 
@@ -99,14 +99,6 @@ void CountryBorder::setRegionOffices(const fcountries &coy, const std::string &d
             printf("%s\n", "Error created country border, method 'setRegionOffices(..., ..., ...)'");
         }
     }
-}
-
-um_map_poli &CountryBorder::getMapBorders(){
-    return this->st_poligon.um_borders;
-}
-
-um_map_dete &CountryBorder::getMapDetector(){
-    return this->st_poligon.um_detector;
 }
 
 StPoligon &CountryBorder::getStPoligon(){
@@ -238,11 +230,17 @@ std::string CountryBorder::get_country_name(const fcountries &coy) const{
     return std::string();
 }
 
+std::vector<fcountries> CountryBorder::get_all_keys_boundary() const{
+    return this->st_poligon.um_borders | std::views::keys | std::ranges::to<std::vector<fcountries>>();
+}
+
 void CountryBorder::Destroy(){
     if (!this->st_poligon.um_detector.empty()){
-        auto m_keys = this->st_poligon.um_detector | std::views::keys;
-        std::ranges::for_each(m_keys.begin(), m_keys.end(), [](void *k_data){
-            [reinterpret_cast<MKPolygon*>(k_data) release];
+        auto u_map = this->st_poligon.um_detector;
+        
+        std::ranges::for_each(u_map.begin(), u_map.end(), [&](const std::pair<void*, fcountries> &map){
+            this->hide_boundary(map.second);
+            [reinterpret_cast<MKPolygon*>(map.first) release];
         });
         
         this->st_poligon.um_borders.clear();
@@ -250,9 +248,11 @@ void CountryBorder::Destroy(){
     }
     
     if (!this->st_region.detect_reg.empty()){
-        auto m_keys = this->st_region.detect_reg | std::views::keys;
-        std::ranges::for_each(m_keys.begin(), m_keys.end(), [](void *k_data){
-            [reinterpret_cast<MKPolygon*>(k_data) release];
+        auto u_map = this->st_region.detect_reg;
+        
+        std::ranges::for_each(u_map.begin(), u_map.end(), [&](const std::pair<void*, fcountries> &map){
+            // ....
+            [reinterpret_cast<MKPolygon*>(map.first) release];
         });
         
         this->st_region.region_off.clear();
@@ -267,6 +267,7 @@ bool CountryBorder::GetMKPolygon(std::vector<std::vector<Geodata>> &vec_loc, con
             j_root = nlohmann::json::parse(d_json);
         } catch (const nlohmann::json::parse_error &error){
             printf("Parse json error: %s\n", error.what());
+            return false;
         }
         
         if (!j_root.empty()){
@@ -317,6 +318,7 @@ bool CountryBorder::GetMkRegionOf(std::vector<JsonRegionData> &vec_loc, const st
             j_root = nlohmann::json::parse(d_json);
         } catch (const nlohmann::json::parse_error &error) {
             printf("Error parsing JSON data while retrieving the country name: %s\n", error.what());
+            return false;
         }
         
         if (!j_root.empty()){
