@@ -35,42 +35,42 @@ struct Colors{
     }
 };
 
-struct Settled{
-    std::vector<void*> country;
-    std::string name;
-    bool   visible = false;
-    Colors color;
-    Colors fill_color;
-    float  line_width = 1.0f;
-};
-
-struct RegionOf{
-    std::vector<void*> region;
+struct EntriesStr{
     std::string sh_name;
     std::string sh_iso;
     std::string sh_id;
     std::string sh_group;
     std::string sh_type;
-    
-    Colors color_reg;
-    Colors color_fill;
-    bool  visible = false;
-    float line_width = 1.0f;
+};
+
+struct JsonPoligonData{
+    std::vector<std::vector<Geodata>> country;
+    EntriesStr entries;
 };
 
 struct JsonRegionData{
     std::vector<std::vector<std::vector<Geodata>>> countours;
-    std::string sh_name;
-    std::string sh_iso;
-    std::string sh_id;
-    std::string sh_group;
-    std::string sh_type;
+    EntriesStr entries;
 };
 
-using um_map_poli = std::unordered_map<fcountries, Settled>;
+struct Properties{
+    Colors color_border;
+    Colors color_fill;
+    
+    bool  visible = false;
+    float line_width = 1.0f;
+};
+
+struct GeoInfo{
+    std::vector<void*> ritems;
+    EntriesStr entries;
+    Properties prop, prop2;
+};
+
+using um_map_poli = std::unordered_map<fcountries, GeoInfo>;
 using um_map_dete = std::unordered_map<void*, fcountries>;
 
-using um_reg_offi = std::unordered_map<fcountries, std::vector<RegionOf>>;
+using um_reg_offi = std::unordered_map<fcountries, std::vector<GeoInfo>>;
 using um_det_reg  = std::unordered_map<void*, fcountries>;
 
 struct StPoligon{
@@ -122,9 +122,8 @@ public:
     
 private:
     void Destroy();
-    bool GetMKPolygon(std::vector<std::vector<Geodata>>&, const std::string&);
+    bool GetMKPolygon(JsonPoligonData&, const std::string&);
     bool GetMkRegionOf(std::vector<JsonRegionData>&, const std::string&);
-    std::string GetCountryName(const std::string&);
 };
 
 #endif

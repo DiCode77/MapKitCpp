@@ -15,9 +15,9 @@
         MKPolygonRenderer* renderer = [[MKPolygonRenderer alloc] initWithPolygon: (MKPolygon*)overlay];
         if (auto it = self.m_poligon->um_detector.find(reinterpret_cast<void*>(overlay)); it != self.m_poligon->um_detector.end()){
             if (auto p_it = self.m_poligon->um_borders.find(it->second); p_it != self.m_poligon->um_borders.end()){
-                const Colors &colore = p_it->second.color;
+                const Colors &colore = p_it->second.prop.color_border;
                 if (colore != Colors()){
-                    const Colors &color = p_it->second.color;
+                    const Colors &color = p_it->second.prop.color_border;
                     renderer.strokeColor = [NSColor colorWithCalibratedRed:color.r / 255.0
                                                                      green:color.g / 255.0
                                                                       blue:color.b / 255.0
@@ -26,7 +26,7 @@
                     renderer.strokeColor = [NSColor yellowColor];
                 }
                 
-                const Colors &fill_colore = p_it->second.fill_color;
+                const Colors &fill_colore = p_it->second.prop.color_fill;
                 if (fill_colore != Colors()){
                     renderer.fillColor = [NSColor colorWithCalibratedRed:fill_colore.r / 255.0
                                                                    green:fill_colore.g / 255.0
@@ -37,7 +37,7 @@
                     renderer.fillColor = nil;
                 }
                 
-                const float &lwidth = p_it->second.line_width;
+                const float &lwidth = p_it->second.prop.line_width;
                 const float lw_def  = 1.0f;
                 if (lwidth != lw_def){
                     renderer.lineWidth = lwidth;
