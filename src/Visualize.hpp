@@ -107,7 +107,7 @@ public:
     Colors get_fill_color(const fcountries&) const;
     float  get_line_width(const fcountries&) const;
     
-    std::vector<fcountries> get_all_keys() const;
+    std::vector<fcountries>  get_all_keys() const;
     std::vector<std::string> get_all_select_entries(const fetries&) const;
     
     std::vector<std::reference_wrapper<const EntriesStr>> get_all_entries() const;
@@ -127,17 +127,22 @@ struct StRegionOf{
 };
 
 class RegionBorder : public Utilities{
-    void **pm_map;
+    void **m_map;
 private:
     StRegionOf st_region;
 public:
     RegionBorder() = delete;
-    RegionBorder(void **pmap) : pm_map(pmap){}
+    RegionBorder(void **pmap) : m_map(pmap){}
     RegionBorder(const RegionBorder&) = delete;
     RegionBorder(RegionBorder&&) = delete;
+    ~RegionBorder();
     
     void set_region_offices(const fcountries&, const std::string&, const Colors& = Colors()); // Add a polygon feature for the regional settlements of the specified country.
     StRegionOf &get_st_region();
+    
+    void show(const fcountries&, const std::string&); // The first parameter should be the ID, and the second should be the ID of the regional office
+    void hide(const fcountries&, const std::string&);
+    bool is_show(const fcountries&, const std::string&);
     
 private:
     void Destroy();

@@ -15,9 +15,8 @@
         MKPolygonRenderer* renderer = [[MKPolygonRenderer alloc] initWithPolygon: (MKPolygon*)overlay];
         if (auto it = self.m_poligon->um_detector.find(reinterpret_cast<void*>(overlay)); it != self.m_poligon->um_detector.end()){
             if (auto p_it = self.m_poligon->um_borders.find(it->second); p_it != self.m_poligon->um_borders.end()){
-                const Colors &colore = p_it->second.prop.color_border;
-                if (colore != Colors()){
-                    const Colors &color = p_it->second.prop.color_border;
+                const Colors &color = p_it->second.prop.color_border;
+                if (color != Colors()){
                     renderer.strokeColor = [NSColor colorWithCalibratedRed:color.r / 255.0
                                                                      green:color.g / 255.0
                                                                       blue:color.b / 255.0
@@ -45,6 +44,46 @@
                     renderer.lineWidth = lw_def;
                 }
             }
+        }
+        else if (auto it = self.m_regions->detect_reg.find(reinterpret_cast<void*>(overlay)); it != self.m_regions->detect_reg.end()){
+            if (auto m_it = self.m_regions->region_off.find(it->second); m_it != self.m_regions->region_off.end()){
+                for (std::vector<GeoInfo>::iterator geo = m_it->second.begin(); geo != m_it->second.end(); geo++){
+                    auto find_it = std::ranges::find_if(geo->ritems.begin(), geo->ritems.end(), [&overlay](const void *data){
+                        return data == reinterpret_cast<void*>(overlay);
+                    });
+                    
+                    if (find_it != geo->ritems.end()){
+                        const Colors &color = geo->prop.color_border;
+                        if (color != Colors()){
+                            renderer.strokeColor = [NSColor colorWithCalibratedRed:color.r / 255.0
+                                                                             green:color.g / 255.0
+                                                                              blue:color.b / 255.0
+                                                                             alpha:color.a];
+                        }else{
+                            renderer.strokeColor = [NSColor yellowColor];
+                        }
+                        
+                        const Colors &fill_color = geo->prop.color_fill;
+                        if (fill_color != Colors()){
+                            renderer.fillColor = [NSColor colorWithCalibratedRed:fill_color.r / 255.0
+                                                                           green:fill_color.g / 255.0
+                                                                            blue:fill_color.b / 255.0
+                                                                           alpha:fill_color.a];
+                        }else{
+                            renderer.fillColor = nil;
+                        }
+                        
+                        const float &width = geo->prop.line_width;
+                        const float lw_def  = 1.0f;
+                        if (width != lw_def){
+                            renderer.lineWidth = width;
+                        }else{
+                            renderer.lineWidth = lw_def;
+                        }
+                    }
+                }
+            }
+        }else{
         }
         return renderer;
     }
@@ -272,5 +311,6 @@ void MapKitBridge::ConnectToDelegateMethods(){
     if (this->mk_delegate != nil){
         this->mk_delegate.um_func = &this->um_func;
         this->mk_delegate.m_poligon = &this->render().country().get_st_poligon();
+        this->mk_delegate.m_regions = &this->render().region().get_st_region();
     }
 }

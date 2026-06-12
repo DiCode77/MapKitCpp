@@ -22,6 +22,7 @@ class MapKitBridge;
 @interface MapKitDelegate : NSObject <MKMapViewDelegate>
 @property um_map_func *um_func;
 @property StPoligon   *m_poligon;
+@property StRegionOf  *m_regions;
 @end
 
 class MapKitBridge{
