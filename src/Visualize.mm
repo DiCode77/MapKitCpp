@@ -1,26 +1,9 @@
-#include "CyBorder.hpp"
+#include "Visualize.hpp"
 #include "MapKit_obj.h"
 
-CountryBorder::~CountryBorder(){
-    this->Destroy();
-}
+// ************ Utilities class ************* //
 
-void CountryBorder::connect_map(void *map){
-    if (this->mk_map == nullptr){
-        this->mk_map = map;
-    }
-}
-
-void CountryBorder::disconnect_map(){
-    this->Destroy();
-    this->mk_map = nullptr;
-}
-
-void CountryBorder::clear_entire_map(){
-    this->Destroy();
-}
-
-std::string CountryBorder::loadFile(const std::string &dir){
+std::string Utilities::loadFile(const std::string &dir){
     std::ifstream file(dir);
     std::string   text;
     
@@ -31,10 +14,20 @@ std::string CountryBorder::loadFile(const std::string &dir){
     return text;
 }
 
-void CountryBorder::setCountryBorder(const fcountries &city, const std::string &d_json, const Colors &colors){
+// ************ CountryBorder class ************* //
+
+CountryBorder::~CountryBorder(){
+    this->Destroy();
+}
+
+void CountryBorder::clear_entire_map(){
+    this->Destroy();
+}
+
+void CountryBorder::set_country_border(const fcountries &city, const std::string &d_json, const Colors &colors){
     if (!this->st_poligon.um_borders.count(city)){
         JsonPoligonData st_poligon;
-        bool mkp = this->GetMKPolygon(st_poligon, d_json);
+        bool mkp = this->GetTheCountryProfile(st_poligon, d_json);
         
         if (mkp){
             GeoInfo sld;
@@ -68,65 +61,16 @@ void CountryBorder::setCountryBorder(const fcountries &city, const std::string &
     }
 }
 
-void CountryBorder::setRegionOffices(const fcountries &coy, const std::string &d_json, const Colors &color){
-    if (!this->st_region.region_off.count(coy)){
-        std::vector<JsonRegionData> vec;
-        
-        bool mkp = this->GetMkRegionOf(vec, d_json);
-        if (mkp){
-            std::vector<GeoInfo> reg_vec;
-            std::ranges::for_each(vec.begin(), vec.end(), [&reg_vec](JsonRegionData &st_data){
-                GeoInfo m_region{
-                    .entries = {
-                        .sh_name  = std::move(st_data.entries.sh_name),
-                        .sh_iso   = std::move(st_data.entries.sh_iso),
-                        .sh_id    = std::move(st_data.entries.sh_id),
-                        .sh_group = std::move(st_data.entries.sh_group),
-                        .sh_type  = std::move(st_data.entries.sh_type)
-                    }
-                };
-                
-                std::ranges::for_each(st_data.countours.begin(), st_data.countours.end(), [&m_region](const std::vector<std::vector<Geodata>> &level_1){
-                    std::ranges::for_each(level_1.begin(), level_1.end(), [&m_region](const std::vector<Geodata> &level_2){
-                        m_region.ritems.emplace_back(reinterpret_cast<void*>([[MKPolygon polygonWithCoordinates:
-                                                                               (CLLocationCoordinate2D*)level_2.data()count:level_2.size()] retain]));
-                    });
-                });
-                reg_vec.emplace_back(m_region);
-            });
-            
-            if (!reg_vec.empty()){
-                std::ranges::for_each(reg_vec.begin(), reg_vec.end(), [&](GeoInfo &reg_data){
-                    std::ranges::for_each(reg_data.ritems.begin(), reg_data.ritems.end(), [&](void *data){
-                        this->st_region.detect_reg.insert(std::make_pair(data, coy));
-                    });
-                });
-                
-                this->st_region.region_off.insert(std::make_pair(coy, std::move(reg_vec)));
-            }else{
-                printf("%s\n", "Unable to retrieve the information, mthod: 'setRegionOffices(..., ..., ...)'");
-            }
-        }
-        else{
-            printf("%s\n", "Error created country border, method 'setRegionOffices(..., ..., ...)'");
-        }
-    }
-}
-
-StPoligon &CountryBorder::getStPoligon(){
+StPoligon &CountryBorder::get_st_poligon(){
     return this->st_poligon;
 }
 
-StRegionOf &CountryBorder::getStRegionOf(){
-    return this->st_region;
-}
-
-void CountryBorder::show_boundary(const fcountries &cnt){
+void CountryBorder::show(const fcountries &cnt){
     if (auto it = this->st_poligon.um_borders.find(cnt); it != this->st_poligon.um_borders.end()){
         if (it->second.prop.visible == false){
             it->second.prop.visible = true;
             
-            MKMapView *map    = reinterpret_cast<MKMapView*>(this->mk_map);
+            MKMapView *map    = reinterpret_cast<MKMapView*>(*this->m_map);
             const auto &c_vec = it->second.ritems;
             
             std::ranges::for_each(c_vec.begin(), c_vec.end(), [&](void *data){
@@ -137,12 +81,12 @@ void CountryBorder::show_boundary(const fcountries &cnt){
     }
 }
 
-void CountryBorder::hide_boundary(const fcountries &cnt){
+void CountryBorder::hide(const fcountries &cnt){
     if (auto it = this->st_poligon.um_borders.find(cnt); it != this->st_poligon.um_borders.end()){
         if (it->second.prop.visible == true){
             it->second.prop.visible = false;
             
-            MKMapView *map    = reinterpret_cast<MKMapView*>(this->mk_map);
+            MKMapView *map    = reinterpret_cast<MKMapView*>(*this->m_map);
             const auto &c_vec = it->second.ritems;
             
             std::ranges::for_each(c_vec.begin(), c_vec.end(), [&](void *data){
@@ -160,13 +104,13 @@ bool CountryBorder::is_show(const fcountries &coy){
     return false;
 }
 
-void CountryBorder::set_color_boundery(const fcountries &coy, const Colors &color){
+void CountryBorder::set_color(const fcountries &coy, const Colors &color){
     if (auto it = this->st_poligon.um_borders.find(coy); it != this->st_poligon.um_borders.end()){
         if (Colors &m_color = it->second.prop.color_border; m_color != color){
             m_color = color;
             
             if (it->second.prop.visible){
-                MKMapView *map    = reinterpret_cast<MKMapView*>(this->mk_map);
+                MKMapView *map    = reinterpret_cast<MKMapView*>(*this->m_map);
                 const auto &c_vec = it->second.ritems;
                 
                 std::ranges::for_each(c_vec.begin(), c_vec.end(), [&](void *data){
@@ -184,7 +128,7 @@ void CountryBorder::set_fill_color(const fcountries &coy, const Colors &fcolor){
             m_fcolor = fcolor;
             
             if (it->second.prop.visible){
-                MKMapView *map    = reinterpret_cast<MKMapView*>(this->mk_map);
+                MKMapView *map    = reinterpret_cast<MKMapView*>(*this->m_map);
                 const auto &c_vec = it->second.ritems;
                 
                 std::ranges::for_each(c_vec.begin(), c_vec.end(), [&](void *data){
@@ -202,7 +146,7 @@ void CountryBorder::set_line_width(const fcountries &coy, const float &lwidth){
             m_lwidth = lwidth;
             
             if (it->second.prop.visible){
-                MKMapView *map    = reinterpret_cast<MKMapView*>(this->mk_map);
+                MKMapView *map    = reinterpret_cast<MKMapView*>(*this->m_map);
                 const auto &c_vec = it->second.ritems;
                 
                 std::ranges::for_each(c_vec.begin(), c_vec.end(), [&](void *data){
@@ -214,7 +158,7 @@ void CountryBorder::set_line_width(const fcountries &coy, const float &lwidth){
     }
 }
 
-Colors CountryBorder::get_color_boundery(const fcountries &coy) const{
+Colors CountryBorder::get_color(const fcountries &coy) const{
     if (auto it = this->st_poligon.um_borders.find(coy); it != this->st_poligon.um_borders.end()){
         return it->second.prop.color_border;
     }
@@ -235,15 +179,43 @@ float CountryBorder::get_line_width(const fcountries &coy) const{
     return 0.f;
 }
 
-std::string CountryBorder::get_country_name(const fcountries &coy) const{
-    if (auto it = this->st_poligon.um_borders.find(coy); it != this->st_poligon.um_borders.end()){
-        return it->second.entries.sh_name;
-    }
-    return std::string();
+std::vector<fcountries> CountryBorder::get_all_keys() const{
+    return this->st_poligon.um_borders | std::views::keys | std::ranges::to<std::vector<fcountries>>();
 }
 
-std::vector<fcountries> CountryBorder::get_all_keys_boundary() const{
-    return this->st_poligon.um_borders | std::views::keys | std::ranges::to<std::vector<fcountries>>();
+std::vector<std::string> CountryBorder::get_all_select_entries(const fetries &entry) const{
+    return this->st_poligon.um_borders | std::views::values | std::views::transform([&entry](const GeoInfo &values){
+        switch (entry) {
+            case fetries::name:
+                return values.entries.sh_name;
+                break;
+            case fetries::iso:
+                return values.entries.sh_iso;
+                break;
+            case fetries::id:
+                return values.entries.sh_id;
+                break;
+            case fetries::group:
+                return values.entries.sh_group;
+                break;
+            case fetries::type:
+                return values.entries.sh_type;
+                break;
+        }
+        return std::string();
+    }) | std::ranges::to<std::vector<std::string>>();
+}
+
+std::vector<std::reference_wrapper<const EntriesStr>> CountryBorder::get_all_entries() const{
+    return this->st_poligon.um_borders | std::views::values | std::views::transform([](const GeoInfo &values) -> const EntriesStr&{
+        return values.entries;
+    }) | std::ranges::to<std::vector<std::reference_wrapper<const EntriesStr>>>();
+}
+
+std::vector<std::reference_wrapper<const Properties>> CountryBorder::get_all_properti() const{
+    return this->st_poligon.um_borders | std::views::values | std::views::transform([](const GeoInfo &values) -> const Properties&{
+        return values.prop;
+    }) | std::ranges::to<std::vector<std::reference_wrapper<const Properties>>>();
 }
 
 void CountryBorder::Destroy(){
@@ -251,28 +223,16 @@ void CountryBorder::Destroy(){
         auto u_map = this->st_poligon.um_detector;
         
         std::ranges::for_each(u_map.begin(), u_map.end(), [&](const std::pair<void*, fcountries> &map){
-            this->hide_boundary(map.second);
+            this->hide(map.second);
             [reinterpret_cast<MKPolygon*>(map.first) release];
         });
         
         this->st_poligon.um_borders.clear();
         this->st_poligon.um_detector.clear();
     }
-    
-    if (!this->st_region.detect_reg.empty()){
-        auto u_map = this->st_region.detect_reg;
-        
-        std::ranges::for_each(u_map.begin(), u_map.end(), [&](const std::pair<void*, fcountries> &map){
-            // ....
-            [reinterpret_cast<MKPolygon*>(map.first) release];
-        });
-        
-        this->st_region.region_off.clear();
-        this->st_region.detect_reg.clear();
-    }
 }
 
-bool CountryBorder::GetMKPolygon(JsonPoligonData &st_poligon, const std::string &d_json){
+bool CountryBorder::GetTheCountryProfile(JsonPoligonData &st_poligon, const std::string &d_json){
     if (!d_json.empty()){
         nlohmann::json j_root;
         try {
@@ -332,7 +292,72 @@ bool CountryBorder::GetMKPolygon(JsonPoligonData &st_poligon, const std::string 
     return false;
 }
 
-bool CountryBorder::GetMkRegionOf(std::vector<JsonRegionData> &vec_loc, const std::string &d_json){
+// ************ RegionBorder class ************* //
+
+void RegionBorder::set_region_offices(const fcountries &coy, const std::string &d_json, const Colors &color){
+    if (!this->st_region.region_off.count(coy)){
+        std::vector<JsonRegionData> vec;
+        
+        bool mkp = this->GetTheRegionalProfile(vec, d_json);
+        if (mkp){
+            std::vector<GeoInfo> reg_vec;
+            std::ranges::for_each(vec.begin(), vec.end(), [&reg_vec](JsonRegionData &st_data){
+                GeoInfo m_region{
+                    .entries = {
+                        .sh_name  = std::move(st_data.entries.sh_name),
+                        .sh_iso   = std::move(st_data.entries.sh_iso),
+                        .sh_id    = std::move(st_data.entries.sh_id),
+                        .sh_group = std::move(st_data.entries.sh_group),
+                        .sh_type  = std::move(st_data.entries.sh_type)
+                    }
+                };
+                
+                std::ranges::for_each(st_data.countours.begin(), st_data.countours.end(), [&m_region](const std::vector<std::vector<Geodata>> &level_1){
+                    std::ranges::for_each(level_1.begin(), level_1.end(), [&m_region](const std::vector<Geodata> &level_2){
+                        m_region.ritems.emplace_back(reinterpret_cast<void*>([[MKPolygon polygonWithCoordinates:
+                                                                               (CLLocationCoordinate2D*)level_2.data()count:level_2.size()] retain]));
+                    });
+                });
+                reg_vec.emplace_back(m_region);
+            });
+            
+            if (!reg_vec.empty()){
+                std::ranges::for_each(reg_vec.begin(), reg_vec.end(), [&](GeoInfo &reg_data){
+                    std::ranges::for_each(reg_data.ritems.begin(), reg_data.ritems.end(), [&](void *data){
+                        this->st_region.detect_reg.insert(std::make_pair(data, coy));
+                    });
+                });
+                
+                this->st_region.region_off.insert(std::make_pair(coy, std::move(reg_vec)));
+            }else{
+                printf("%s\n", "Unable to retrieve the information, mthod: 'setRegionOffices(..., ..., ...)'");
+            }
+        }
+        else{
+            printf("%s\n", "Error created country border, method 'setRegionOffices(..., ..., ...)'");
+        }
+    }
+}
+
+StRegionOf &RegionBorder::get_st_region(){
+    return this->st_region;
+}
+
+void RegionBorder::Destroy(){
+    if (!this->st_region.detect_reg.empty()){
+        auto u_map = this->st_region.detect_reg;
+        
+        std::ranges::for_each(u_map.begin(), u_map.end(), [&](const std::pair<void*, fcountries> &map){
+            // ....
+            [reinterpret_cast<MKPolygon*>(map.first) release];
+        });
+        
+        this->st_region.region_off.clear();
+        this->st_region.detect_reg.clear();
+    }
+}
+
+bool RegionBorder::GetTheRegionalProfile(std::vector<JsonRegionData> &vec_loc, const std::string &d_json){
     if (!d_json.empty()){
         nlohmann::json j_root;
         try {
@@ -411,4 +436,29 @@ bool CountryBorder::GetMkRegionOf(std::vector<JsonRegionData> &vec_loc, const st
         return !vec_loc.empty();
     }
     return false;
+}
+
+// ************ Visualize class ************* //
+
+Visualize::Visualize() : m_country(new CountryBorder(&this->m_map)), m_region(new RegionBorder(&this->m_map)), m_map(nullptr){}
+
+Visualize::Visualize(void *map) : Visualize::Visualize(){
+    this->m_map = map;
+}
+
+Visualize::~Visualize(){
+    delete this->m_country;
+    delete this->m_region;
+}
+
+void Visualize::connect(void *map){
+    this->m_map = map;
+}
+
+CountryBorder &Visualize::country(){
+    return *this->m_country;
+}
+
+RegionBorder &Visualize::region(){
+    return *this->m_region;
 }

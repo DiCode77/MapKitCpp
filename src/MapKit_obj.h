@@ -14,7 +14,7 @@
 #include <functional>
 #include <any>
 #include "Parameters.hpp"
-#include "CyBorder.hpp"
+#include "Visualize.hpp"
 
 using um_map_func = std::unordered_map<ffunc_conn, std::function<void(const std::any&)>>;
 
@@ -29,7 +29,7 @@ class MapKitBridge{
     MKMapView      *map_view;
     NSRect         rect_map;
     MapKitDelegate *mk_delegate;
-    CountryBorder  m_cy_borders;
+    Visualize      m_render;
 public:
     um_map_func um_func;
 public:
@@ -65,7 +65,8 @@ public:
     
     void connect(const ffunc_conn &isId, std::function<void(const std::any&)>);
     
-    CountryBorder &cy_border();
+    Visualize &render();
+    
 private:
     void CreatedDelegatedMapKitBridge();
     void ConnectToDelegateMethods();

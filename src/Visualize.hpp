@@ -64,66 +64,100 @@ struct Properties{
 struct GeoInfo{
     std::vector<void*> ritems;
     EntriesStr entries;
-    Properties prop, prop2;
+    Properties prop;
 };
 
 using um_map_poli = std::unordered_map<fcountries, GeoInfo>;
 using um_map_dete = std::unordered_map<void*, fcountries>;
-
-using um_reg_offi = std::unordered_map<fcountries, std::vector<GeoInfo>>;
-using um_det_reg  = std::unordered_map<void*, fcountries>;
 
 struct StPoligon{
     um_map_poli    um_borders;
     um_map_dete    um_detector;
 };
 
+class Utilities{
+public:
+    std::string loadFile(const std::string&);
+};
+
+class CountryBorder : public Utilities{
+    void       **m_map;
+    StPoligon  st_poligon;
+public:
+    CountryBorder() = delete;
+    CountryBorder(void **map) : m_map(map){}
+    CountryBorder(const CountryBorder&) = delete;
+    CountryBorder(CountryBorder&&) = delete;
+    ~CountryBorder();
+    
+    void clear_entire_map(); // In addition to removing everything that has been added to the map, this method will also clear all added objects.
+    void set_country_border(const fcountries&, const std::string&, const Colors& = Colors()); // Add a boundary object for a single country.
+    
+    StPoligon  &get_st_poligon();
+    
+    void show(const fcountries&);
+    void hide(const fcountries&);
+    bool is_show(const fcountries&);
+    
+    void set_color(const fcountries&, const Colors&);
+    void set_fill_color(const fcountries&, const Colors&);
+    void set_line_width(const fcountries&, const float&);
+    
+    Colors get_color(const fcountries&) const;
+    Colors get_fill_color(const fcountries&) const;
+    float  get_line_width(const fcountries&) const;
+    
+    std::vector<fcountries> get_all_keys() const;
+    std::vector<std::string> get_all_select_entries(const fetries&) const;
+    
+    std::vector<std::reference_wrapper<const EntriesStr>> get_all_entries() const;
+    std::vector<std::reference_wrapper<const Properties>> get_all_properti() const;
+    
+private:
+    void Destroy();
+    bool GetTheCountryProfile(JsonPoligonData&, const std::string&);
+};
+
+using um_reg_offi = std::unordered_map<fcountries, std::vector<GeoInfo>>;
+using um_det_reg  = std::unordered_map<void*, fcountries>;
+
 struct StRegionOf{
     um_reg_offi region_off;
     um_det_reg  detect_reg;
 };
 
-class CountryBorder{
-    void       *mk_map;
-    StPoligon  st_poligon;
+class RegionBorder : public Utilities{
+    void **pm_map;
+private:
     StRegionOf st_region;
 public:
-    CountryBorder() : mk_map(nullptr){}
-    CountryBorder(void *map): mk_map(map){}
-    CountryBorder(const CountryBorder&) = delete;
-    CountryBorder(CountryBorder&&) = delete;
-    ~CountryBorder();
+    RegionBorder() = delete;
+    RegionBorder(void **pmap) : pm_map(pmap){}
+    RegionBorder(const RegionBorder&) = delete;
+    RegionBorder(RegionBorder&&) = delete;
     
-    void connect_map(void*);
-    void disconnect_map();
-    void clear_entire_map(); // In addition to removing everything that has been added to the map, this method will also clear all added objects.
-    
-    std::string loadFile(const std::string&);
-    void setCountryBorder(const fcountries&, const std::string&, const Colors& = Colors()); // Add a boundary object for a single country.
-    void setRegionOffices(const fcountries&, const std::string&, const Colors& = Colors()); // Add a polygon feature for the regional settlements of the specified country.
-    
-    StPoligon  &getStPoligon();
-    StRegionOf &getStRegionOf();
-    
-    void show_boundary(const fcountries&);
-    void hide_boundary(const fcountries&);
-    bool is_show(const fcountries&);
-    
-    void set_color_boundery(const fcountries&, const Colors&);
-    void set_fill_color(const fcountries&, const Colors&);
-    void set_line_width(const fcountries&, const float&);
-    
-    Colors get_color_boundery(const fcountries&) const;
-    Colors get_fill_color(const fcountries&) const;
-    float  get_line_width(const fcountries&) const;
-    std::string get_country_name(const fcountries&) const;
-    
-    std::vector<fcountries> get_all_keys_boundary() const;
+    void set_region_offices(const fcountries&, const std::string&, const Colors& = Colors()); // Add a polygon feature for the regional settlements of the specified country.
+    StRegionOf &get_st_region();
     
 private:
     void Destroy();
-    bool GetMKPolygon(JsonPoligonData&, const std::string&);
-    bool GetMkRegionOf(std::vector<JsonRegionData>&, const std::string&);
+    bool GetTheRegionalProfile(std::vector<JsonRegionData>&, const std::string&);
+};
+
+class Visualize{
+    CountryBorder *m_country;
+    RegionBorder  *m_region;
+private:
+    void *m_map;
+public:
+    Visualize();
+    Visualize(void*);
+    ~Visualize();
+    
+    void connect(void*);
+    
+    CountryBorder &country();
+    RegionBorder &region();
 };
 
 #endif

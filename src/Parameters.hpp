@@ -135,5 +135,12 @@ enum class fcountries{
     end
 };
 
+enum class fetries{
+    name,
+    iso,
+    id,
+    group,
+    type
+};
 
 #endif

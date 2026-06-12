@@ -11,7 +11,7 @@
 #include <functional>
 #include <any>
 #include "Parameters.hpp"
-#include "CyBorder.hpp"
+#include "Visualize.hpp"
 
 class MapKitBridge;
 class MapKit{
@@ -50,7 +50,7 @@ public:
     
     void connect(const ffunc_conn&, std::function<void(const std::any&)>); // To implement delegating methods.
     
-    CountryBorder &add_city_borders();
+    Visualize &render();
 };
 
 #endif /* MapKit_hpp */

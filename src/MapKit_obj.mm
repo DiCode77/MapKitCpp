@@ -115,7 +115,7 @@ MapKitBridge::MapKitBridge(void *ns_vw, const fpoint &point, const fsize &size, 
     this->setMapType(m_type); // Here we specify the map type.
     this->CreatedDelegatedMapKitBridge();
     this->ConnectToDelegateMethods();
-    this->m_cy_borders.connect_map(reinterpret_cast<void*>(this->map_view));
+    this->m_render.connect(reinterpret_cast<void*>(this->map_view));
     [this->ns_view addSubview:this->map_view];
 }
 
@@ -257,8 +257,8 @@ void MapKitBridge::connect(const ffunc_conn &isId, std::function<void(const std:
     }
 }
 
-CountryBorder &MapKitBridge::cy_border(){
-    return this->m_cy_borders;
+Visualize &MapKitBridge::render(){
+    return this->m_render;
 }
 
 void MapKitBridge::CreatedDelegatedMapKitBridge(){
@@ -271,6 +271,6 @@ void MapKitBridge::CreatedDelegatedMapKitBridge(){
 void MapKitBridge::ConnectToDelegateMethods(){
     if (this->mk_delegate != nil){
         this->mk_delegate.um_func = &this->um_func;
-        this->mk_delegate.m_poligon = &this->cy_border().getStPoligon();
+        this->mk_delegate.m_poligon = &this->render().country().get_st_poligon();
     }
 }
