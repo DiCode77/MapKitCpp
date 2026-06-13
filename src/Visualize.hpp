@@ -145,6 +145,10 @@ public:
     void hide(const fcountries&, const std::string&);
     bool is_show(const fcountries&, const std::string&);
     
+    void set_color(const fcountries&, const std::string&, const Colors&);
+    void set_color_fill(const fcountries&, const std::string&, const Colors&);
+    void set_line_width(const fcountries&, const std::string&, const float&);
+    
     std::vector<fcountries>  get_all_keys() const;
     std::vector<std::string> get_all_select_entries(const fcountries&, const fetries&) const;
     std::vector<std::pair<std::string, std::string>> get_all_pair_select_entries(const fcountries&, const fetries&, const fetries&) const;
@@ -153,6 +157,7 @@ public:
 private:
     void Destroy();
     bool GetTheRegionalProfile(std::vector<JsonRegionData>&, const std::string&);
+    void RefreshVisualization(const std::vector<void*>&);
 };
 
 class Visualize{

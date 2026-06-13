@@ -398,6 +398,60 @@ bool RegionBorder::is_show(const fcountries &coy, const std::string &sh_id){
     return false;
 }
 
+void RegionBorder::set_color(const fcountries &coy, const std::string &sh_id, const Colors &m_color){
+    if (auto it = this->st_region.region_off.find(coy); it != this->st_region.region_off.end()){
+        auto find = std::ranges::find_if(it->second.begin(), it->second.end(), [&sh_id](GeoInfo &info){
+            return info.entries.sh_id == sh_id;
+        });
+        
+        if (find != it->second.end()){
+            if (Colors &color = find->prop.color_border; color != m_color){
+                color = m_color;
+                
+                if (find->prop.visible){
+                    this->RefreshVisualization(find->ritems);
+                }
+            }
+        }
+    }
+}
+
+void RegionBorder::set_color_fill(const fcountries &coy, const std::string &sh_id, const Colors &m_color){
+    if (auto it = this->st_region.region_off.find(coy); it != this->st_region.region_off.end()){
+        auto find = std::ranges::find_if(it->second.begin(), it->second.end(), [&sh_id](GeoInfo &info){
+            return info.entries.sh_id == sh_id;
+        });
+        
+        if (find != it->second.end()){
+            if (Colors &color = find->prop.color_fill; color != m_color){
+                color = m_color;
+                
+                if (find->prop.visible){
+                    this->RefreshVisualization(find->ritems);
+                }
+            }
+        }
+    }
+}
+
+void RegionBorder::set_line_width(const fcountries &coy, const std::string &sh_id, const float &m_width){
+    if (auto it = this->st_region.region_off.find(coy); it != this->st_region.region_off.end()){
+        auto find = std::ranges::find_if(it->second.begin(), it->second.end(), [&sh_id](GeoInfo &info){
+            return info.entries.sh_id == sh_id;
+        });
+        
+        if (find != it->second.end()){
+            if (float &width = find->prop.line_width; width != m_width){
+                width = m_width;
+                
+                if (find->prop.visible){
+                    this->RefreshVisualization(find->ritems);
+                }
+            }
+        }
+    }
+}
+
 std::vector<fcountries> RegionBorder::get_all_keys() const{
     return this->st_region.region_off | std::views::keys | std::ranges::to<std::vector<fcountries>>();
 }
@@ -522,6 +576,16 @@ bool RegionBorder::GetTheRegionalProfile(std::vector<JsonRegionData> &vec_loc, c
         return !vec_loc.empty();
     }
     return false;
+}
+
+void RegionBorder::RefreshVisualization(const std::vector<void*> &vec){
+    if (!vec.empty()){
+        MKMapView  *map = reinterpret_cast<MKMapView*>(*this->m_map);
+        std::ranges::for_each(vec.begin(), vec.end(), [&map](void *data){
+            [map removeOverlay:reinterpret_cast<MKPolygon*>(data)];
+            [map addOverlay:reinterpret_cast<MKPolygon*>(data)];
+        });
+    }
 }
 
 // ************ Visualize class ************* //
