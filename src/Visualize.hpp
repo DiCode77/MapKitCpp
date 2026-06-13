@@ -138,6 +138,7 @@ public:
     RegionBorder(RegionBorder&&) = delete;
     ~RegionBorder();
     
+    void clear_entire_map();
     void set_region_offices(const fcountries&, const std::string&, const Colors& = Colors()); // Add a polygon feature for the regional settlements of the specified country.
     StRegionOf &get_st_region();
     

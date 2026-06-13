@@ -107,6 +107,31 @@ typedef void (^CoordinateCallback)(double, double);
     }];
 }
 
+- (void)completerDidUpdateResults:(MKLocalSearchCompleter*)completer{
+    if (auto it = self.um_func->find(ffunc_conn::evt_update_completer); it != self.um_func->end()){
+        std::vector<std::pair<std::string, std::string>> vec(static_cast<size_t>(completer.results.count));
+        for (size_t i = 0; i < vec.size(); i++){
+            vec[i] = std::make_pair([completer.results[i].title UTF8String], [completer.results[i].subtitle UTF8String]);
+        }
+        it->second(std::make_any<std::vector<std::pair<std::string, std::string>>>(std::move(vec)));
+    }
+}
+
+- (void)completer:(MKLocalSearchCompleter*)completer didFailWithError:(NSError*)error{
+    if (auto it = self.um_func->find(ffunc_conn::evt_update_completer); it != self.um_func->end()){
+        it->second(std::make_any<std::vector<std::pair<std::string, std::string>>>());
+    }
+}
+
+- (void)dealloc{
+    if (self.completer != nil){
+        self.completer.delegate = nil;
+        [self.completer release];
+        self.completer = nil;
+    }
+    [super dealloc];
+}
+
 @end
 
 MapKitBridge::MapKitBridge() : ns_view(nil), map_view(nil), rect_map(NSMakeRect(-1, -1, -1, -1)), mk_delegate(nil){}
@@ -183,6 +208,7 @@ MapKitBridge::~MapKitBridge(){
     }
     
     if (this->map_view != nil){
+        [this->map_view removeFromSuperview];
         [this->map_view release];
         this->map_view = nil;
     }
@@ -315,6 +341,12 @@ void MapKitBridge::connect(const ffunc_conn &isId, std::function<void(const std:
                 this->um_func.insert(std::make_pair(ffunc_conn::evt_geocode_location, func));
             }
             break;
+        case ffunc_conn::evt_update_completer:
+            if (!this->um_func.count(ffunc_conn::evt_update_completer)){
+                this->um_func.insert(std::make_pair(ffunc_conn::evt_update_completer, func));
+                this->InitCompliterTitles();
+            }
+            break;
     }
 }
 
@@ -323,11 +355,19 @@ Visualize &MapKitBridge::render(){
 }
 
 // This is an asynchronous method; the response will be received after a period of time.
-void MapKitBridge::getGeocodeLocation(const std::string &t_name){
+void MapKitBridge::setGeocodeLocation(const std::string &t_name){
     if (auto it = this->um_func.find(ffunc_conn::evt_geocode_location); it != this->um_func.end()){
         [this->mk_delegate findCity:[NSString stringWithUTF8String:t_name.c_str()] completion:^(double lat, double lon){
             it->second(std::make_any<Geodata>(Geodata(lat, lon)));
         }];
+    }
+}
+
+void MapKitBridge::setUpdateCompleter(const std::string &name){
+    if (auto it = this->um_func.find(ffunc_conn::evt_update_completer); it != this->um_func.end()){
+        if (this->mk_delegate.completer != nil){
+            this->mk_delegate.completer.queryFragment = [NSString stringWithUTF8String:name.c_str()];
+        }
     }
 }
 
@@ -343,5 +383,12 @@ void MapKitBridge::ConnectToDelegateMethods(){
         this->mk_delegate.um_func = &this->um_func;
         this->mk_delegate.m_poligon = &this->render().country().get_st_poligon();
         this->mk_delegate.m_regions = &this->render().region().get_st_region();
+    }
+}
+
+void MapKitBridge::InitCompliterTitles(){
+    if (this->mk_delegate.completer == nil){
+        this->mk_delegate.completer = [[MKLocalSearchCompleter alloc] init]; // Memory allocation is managed by the delegate's destructor.
+        this->mk_delegate.completer.delegate = this->mk_delegate;
     }
 }

@@ -216,7 +216,7 @@ std::vector<std::reference_wrapper<const Properties>> CountryBorder::get_all_pro
 
 void CountryBorder::Destroy(){
     if (!this->st_poligon.um_detector.empty()){
-        auto u_map = this->st_poligon.um_detector;
+        auto &u_map = this->st_poligon.um_detector;
         
         std::ranges::for_each(u_map.begin(), u_map.end(), [&](const std::pair<void*, fcountries> &map){
             this->hide(map.second);
@@ -293,6 +293,9 @@ bool CountryBorder::GetTheCountryProfile(JsonPoligonData &st_poligon, const std:
 RegionBorder::~RegionBorder(){
     this->Destroy();
     this->m_map = nullptr;
+}
+void RegionBorder::clear_entire_map(){
+    this->Destroy();
 }
 
 void RegionBorder::set_region_offices(const fcountries &coy, const std::string &d_json, const Colors &color){
@@ -485,8 +488,7 @@ std::vector<std::reference_wrapper<const EntriesStr>> RegionBorder::get_all_entr
 
 void RegionBorder::Destroy(){
     if (!this->st_region.detect_reg.empty()){
-        auto u_map = this->st_region.detect_reg;
-        
+        auto &u_map = this->st_region.detect_reg;
         std::ranges::for_each(u_map.begin(), u_map.end(), [&](const std::pair<void*, fcountries> &map){
             // ....
             [reinterpret_cast<MKPolygon*>(map.first) release];
@@ -599,6 +601,7 @@ Visualize::Visualize(void *map) : Visualize::Visualize(){
 Visualize::~Visualize(){
     delete this->m_country;
     delete this->m_region;
+    this->m_map = nullptr;
 }
 
 void Visualize::connect(void *map){

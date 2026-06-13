@@ -122,7 +122,8 @@ enum class fmap_modes{
 
 enum class ffunc_conn{
     evt_height_changed,
-    evt_geocode_location
+    evt_geocode_location,
+    evt_update_completer
 };
 
 enum class fcountries{

@@ -105,6 +105,10 @@ Visualize &MapKit::render(){
     return this->map_bridge->render();
 }
 
-void MapKit::getGeocodeLocation(const std::string &name){
-    this->map_bridge->getGeocodeLocation(name);
+void MapKit::setGeocodeLocation(const std::string &name){
+    this->map_bridge->setGeocodeLocation(name);
+}
+
+void MapKit::setUpdateCompleter(const std::string &name){
+    this->map_bridge->setUpdateCompleter(name);
 }

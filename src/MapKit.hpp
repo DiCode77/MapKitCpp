@@ -52,7 +52,8 @@ public:
     
     Visualize &render();
     
-    void getGeocodeLocation(const std::string&);
+    void setGeocodeLocation(const std::string&);
+    void setUpdateCompleter(const std::string&);
 };
 
 #endif /* MapKit_hpp */

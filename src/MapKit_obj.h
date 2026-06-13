@@ -20,10 +20,11 @@
 using um_map_func = std::unordered_map<ffunc_conn, std::function<void(const std::any&)>>;
 
 class MapKitBridge;
-@interface MapKitDelegate : NSObject <MKMapViewDelegate>
-@property um_map_func *um_func;
-@property StPoligon   *m_poligon;
-@property StRegionOf  *m_regions;
+@interface MapKitDelegate : NSObject <MKMapViewDelegate, MKLocalSearchCompleterDelegate>
+@property(nonatomic, assign) MKLocalSearchCompleter *completer;
+@property(nonatomic, assign) um_map_func *um_func;
+@property(nonatomic, assign) StPoligon   *m_poligon;
+@property(nonatomic, assign) StRegionOf  *m_regions;
 @end
 
 class MapKitBridge{
@@ -69,11 +70,13 @@ public:
     
     Visualize &render();
     
-    void getGeocodeLocation(const std::string&);
+    void setGeocodeLocation(const std::string&);
+    void setUpdateCompleter(const std::string&);
     
 private:
     void CreatedDelegatedMapKitBridge();
     void ConnectToDelegateMethods();
+    void InitCompliterTitles();
 };
 
 #endif /* MapKit_obj_h */
