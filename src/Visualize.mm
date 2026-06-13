@@ -14,6 +14,17 @@ std::string Utilities::loadFile(const std::string &dir){
     return text;
 }
 
+std::string Utilities::GetSelectEntries(const fetries &entry, const GeoInfo &info) const{
+    switch (entry) {
+        case fetries::name:  return info.entries.sh_name;
+        case fetries::iso:   return info.entries.sh_iso;
+        case fetries::id:    return info.entries.sh_id;
+        case fetries::group: return info.entries.sh_group;
+        case fetries::type:  return info.entries.sh_type;
+    }
+    return {};
+}
+
 // ************ CountryBorder class ************* //
 
 CountryBorder::~CountryBorder(){
@@ -185,26 +196,10 @@ std::vector<fcountries> CountryBorder::get_all_keys() const{
 }
 
 std::vector<std::string> CountryBorder::get_all_select_entries(const fetries &entry) const{
-    return this->st_poligon.um_borders | std::views::values | std::views::transform([&entry](const GeoInfo &values){
-        switch (entry) {
-            case fetries::name:
-                return values.entries.sh_name;
-                break;
-            case fetries::iso:
-                return values.entries.sh_iso;
-                break;
-            case fetries::id:
-                return values.entries.sh_id;
-                break;
-            case fetries::group:
-                return values.entries.sh_group;
-                break;
-            case fetries::type:
-                return values.entries.sh_type;
-                break;
-        }
-        return std::string();
+    return this->st_poligon.um_borders | std::views::values | std::views::transform([&](const GeoInfo &values){
+        return this->GetSelectEntries(entry, values);
     }) | std::ranges::to<std::vector<std::string>>();
+    return {};
 }
 
 std::vector<std::reference_wrapper<const EntriesStr>> CountryBorder::get_all_entries() const{
@@ -401,6 +396,37 @@ bool RegionBorder::is_show(const fcountries &coy, const std::string &sh_id){
         }
     }
     return false;
+}
+
+std::vector<fcountries> RegionBorder::get_all_keys() const{
+    return this->st_region.region_off | std::views::keys | std::ranges::to<std::vector<fcountries>>();
+}
+
+std::vector<std::string> RegionBorder::get_all_select_entries(const fcountries &coy, const fetries &entry) const{
+    if (auto it = this->st_region.region_off.find(coy); it != this->st_region.region_off.end()){
+        return it->second | std::views::transform([&](const GeoInfo &info){
+            return this->GetSelectEntries(entry, info);
+        }) | std::ranges::to<std::vector<std::string>>();
+    }
+    return {};
+}
+
+std::vector<std::pair<std::string, std::string>> RegionBorder::get_all_pair_select_entries(const fcountries &coy, const fetries &first, const fetries &second) const{
+    if (auto it = this->st_region.region_off.find(coy); it != this->st_region.region_off.end()){
+        return it->second | std::views::transform([&](const GeoInfo &info){
+            return std::make_pair(this->GetSelectEntries(first, info), this->GetSelectEntries(second, info));
+        }) | std::ranges::to<std::vector<std::pair<std::string, std::string>>>();
+    }
+    return {};
+}
+
+std::vector<std::reference_wrapper<const EntriesStr>> RegionBorder::get_all_entries(const fcountries &coy) const{
+    if (auto it = this->st_region.region_off.find(coy); it != this->st_region.region_off.end()){
+        return it->second | std::views::transform([](const GeoInfo &info) -> const EntriesStr&{
+            return info.entries;
+        }) | std::ranges::to<std::vector<std::reference_wrapper<const EntriesStr>>>();
+    }
+    return {};
 }
 
 void RegionBorder::Destroy(){

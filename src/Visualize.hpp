@@ -78,6 +78,7 @@ struct StPoligon{
 class Utilities{
 public:
     std::string loadFile(const std::string&);
+    std::string GetSelectEntries(const fetries&, const GeoInfo&) const;
 };
 
 class CountryBorder : public Utilities{
@@ -143,6 +144,11 @@ public:
     void show(const fcountries&, const std::string&); // The first parameter should be the ID, and the second should be the ID of the regional office
     void hide(const fcountries&, const std::string&);
     bool is_show(const fcountries&, const std::string&);
+    
+    std::vector<fcountries>  get_all_keys() const;
+    std::vector<std::string> get_all_select_entries(const fcountries&, const fetries&) const;
+    std::vector<std::pair<std::string, std::string>> get_all_pair_select_entries(const fcountries&, const fetries&, const fetries&) const;
+    std::vector<std::reference_wrapper<const EntriesStr>> get_all_entries(const fcountries&) const;
     
 private:
     void Destroy();
