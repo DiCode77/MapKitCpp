@@ -4,7 +4,7 @@
 @implementation MapKitDelegate
 - (void)mapViewDidChangeVisibleRegion:(MKMapView*)mapView{
     if (self.um_func != nil){
-        if (auto it = self.um_func->find(ffunc_conn::m_view_change_region); it != self.um_func->end()){
+        if (auto it = self.um_func->find(ffunc_conn::evt_height_changed); it != self.um_func->end()){
             it->second(std::make_any<const double&>(static_cast<const double&>(mapView.camera.centerCoordinateDistance)));
         }
     }
@@ -88,6 +88,23 @@
         return renderer;
     }
     return nil;
+}
+
+typedef void (^CoordinateCallback)(double, double);
+- (void)findCity:(NSString*)city completion:(CoordinateCallback)completion{
+    MKLocalSearchRequest  *request = [[MKLocalSearchRequest alloc] init];
+    request.naturalLanguageQuery = city;
+    
+    MKLocalSearch *search = [[MKLocalSearch alloc] initWithRequest:request];
+    
+    [search startWithCompletionHandler:^(MKLocalSearchResponse * _Nullable response, NSError * _Nullable error) {
+        if (error || response.mapItems.count == 0){
+            completion(0.f, 0.f);
+        }else{
+            MKMapItem *item = response.mapItems.firstObject;
+            completion(item.location.coordinate.latitude, item.location.coordinate.longitude);
+        }
+    }];
 }
 
 @end
@@ -288,9 +305,14 @@ double MapKitBridge::getCenterCordinateDistance(){
 
 void MapKitBridge::connect(const ffunc_conn &isId, std::function<void(const std::any&)> func){
     switch (isId) {
-        case ffunc_conn::m_view_change_region:
-            if (!this->um_func.count(ffunc_conn::m_view_change_region)){
-                this->um_func.insert(std::make_pair(ffunc_conn::m_view_change_region, func));
+        case ffunc_conn::evt_height_changed:
+            if (!this->um_func.count(ffunc_conn::evt_height_changed)){
+                this->um_func.insert(std::make_pair(ffunc_conn::evt_height_changed, func));
+            }
+            break;
+        case ffunc_conn::evt_geocode_location:
+            if (!this->um_func.count(ffunc_conn::evt_geocode_location)){
+                this->um_func.insert(std::make_pair(ffunc_conn::evt_geocode_location, func));
             }
             break;
     }
@@ -298,6 +320,15 @@ void MapKitBridge::connect(const ffunc_conn &isId, std::function<void(const std:
 
 Visualize &MapKitBridge::render(){
     return this->m_render;
+}
+
+// This is an asynchronous method; the response will be received after a period of time.
+void MapKitBridge::getGeocodeLocation(const std::string &t_name){
+    if (auto it = this->um_func.find(ffunc_conn::evt_geocode_location); it != this->um_func.end()){
+        [this->mk_delegate findCity:[NSString stringWithUTF8String:t_name.c_str()] completion:^(double lat, double lon){
+            it->second(std::make_any<Geodata>(Geodata(lat, lon)));
+        }];
+    }
 }
 
 void MapKitBridge::CreatedDelegatedMapKitBridge(){

@@ -10,6 +10,7 @@
 
 #include <Cocoa/cocoa.h>
 #include <MapKit/MapKit.h>
+#include <CoreLocation/CoreLocation.h>
 #include <unordered_map>
 #include <functional>
 #include <any>
@@ -67,6 +68,8 @@ public:
     void connect(const ffunc_conn &isId, std::function<void(const std::any&)>);
     
     Visualize &render();
+    
+    void getGeocodeLocation(const std::string&);
     
 private:
     void CreatedDelegatedMapKitBridge();

@@ -121,7 +121,8 @@ enum class fmap_modes{
 };
 
 enum class ffunc_conn{
-    m_view_change_region,
+    evt_height_changed,
+    evt_geocode_location
 };
 
 enum class fcountries{

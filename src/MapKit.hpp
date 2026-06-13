@@ -51,6 +51,8 @@ public:
     void connect(const ffunc_conn&, std::function<void(const std::any&)>); // To implement delegating methods.
     
     Visualize &render();
+    
+    void getGeocodeLocation(const std::string&);
 };
 
 #endif /* MapKit_hpp */

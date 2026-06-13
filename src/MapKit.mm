@@ -104,3 +104,7 @@ void MapKit::connect(const ffunc_conn &id, std::function<void(const std::any&)> 
 Visualize &MapKit::render(){
     return this->map_bridge->render();
 }
+
+void MapKit::getGeocodeLocation(const std::string &name){
+    this->map_bridge->getGeocodeLocation(name);
+}
