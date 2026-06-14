@@ -110,7 +110,6 @@ public:
     
     std::vector<fcountries>  get_all_keys() const;
     std::vector<std::string> get_all_select_entries(const fetries&) const;
-    
     std::vector<std::reference_wrapper<const EntriesStr>> get_all_entries() const;
     std::vector<std::reference_wrapper<const Properties>> get_all_properti() const;
     
@@ -140,7 +139,7 @@ public:
     
     void clear_entire_map();
     void set_region_offices(const fcountries&, const std::string&, const Colors& = Colors()); // Add a polygon feature for the regional settlements of the specified country.
-    StRegionOf &get_st_region();
+    StRegionOf &get_st_region(); // This method returns a reference to the data structure that stores all the data.
     
     void show(const fcountries&, const std::string&); // The first parameter should be the ID, and the second should be the ID of the regional office
     void hide(const fcountries&, const std::string&);
@@ -151,10 +150,11 @@ public:
     void set_line_width(const fcountries&, const std::string&, const float&);
     
     std::vector<fcountries>  get_all_keys() const;
-    std::vector<std::string> get_all_select_entries(const fcountries&, const fetries&) const;
+    std::vector<std::string> get_all_select_entries(const fcountries&, const fetries&) const; // Returns an array based on the specified parameter.
     std::vector<std::pair<std::string, std::string>> get_all_pair_select_entries(const fcountries&, const fetries&, const fetries&) const;
-    std::vector<std::reference_wrapper<const EntriesStr>> get_all_entries(const fcountries&) const;
-    
+    std::unordered_map<std::string, std::string> get_all_map_select_entries(const fcountries&, const fetries&, const fetries&) const;
+    std::vector<std::reference_wrapper<const EntriesStr>> get_all_entries(const fcountries&) const; // Returns an array of structures for the specified country.
+
 private:
     void Destroy();
     bool GetTheRegionalProfile(std::vector<JsonRegionData>&, const std::string&);

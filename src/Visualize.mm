@@ -477,6 +477,12 @@ std::vector<std::pair<std::string, std::string>> RegionBorder::get_all_pair_sele
     return {};
 }
 
+std::unordered_map<std::string, std::string> RegionBorder::get_all_map_select_entries(const fcountries &coy, const fetries &first, const fetries &second) const{
+    return this->get_all_pair_select_entries(coy, first, second) | std::views::transform([](std::pair<std::string, std::string> &pair){
+        return std::make_pair(std::move(pair.first), std::move(pair.second));
+    }) | std::ranges::to<std::unordered_map<std::string, std::string>>();
+}
+
 std::vector<std::reference_wrapper<const EntriesStr>> RegionBorder::get_all_entries(const fcountries &coy) const{
     if (auto it = this->st_region.region_off.find(coy); it != this->st_region.region_off.end()){
         return it->second | std::views::transform([](const GeoInfo &info) -> const EntriesStr&{
@@ -490,7 +496,7 @@ void RegionBorder::Destroy(){
     if (!this->st_region.detect_reg.empty()){
         auto &u_map = this->st_region.detect_reg;
         std::ranges::for_each(u_map.begin(), u_map.end(), [&](const std::pair<void*, fcountries> &map){
-            // ....
+            [reinterpret_cast<MKMapView*>(*this->m_map) removeOverlay:reinterpret_cast<MKPolygon*>(map.first)]; // This is a test method for hiding all active overlays.
             [reinterpret_cast<MKPolygon*>(map.first) release];
         });
         
