@@ -76,7 +76,9 @@ public:
     void setCenterCoordinateAndZoom(const Geodata&, const Geodata&, const bool);
     
     float getHeadingCamera();
-    void  setHeadingCamera(const float&);
+    void  setHeadingCamera(const float&, const bool);
+    void  setPitchCamera(const float&, const bool);
+    void  setAltitudeCamera(const float&, const bool);
     
 private:
     void CreatedDelegatedMapKitBridge();

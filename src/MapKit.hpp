@@ -58,7 +58,9 @@ public:
     void setCenterCoordinateAndZoom(const Geodata&, const Geodata&, const bool = true);
     
     float getHeadingCamera(); // Determine the angle of rotation.
-    void  setHeadingCamera(const float&); // Set the rotation angle to a minimum of 0 degrees and a maximum of 360 degrees.
+    void  setHeadingCamera(const float&, const bool = true); // Set the rotation angle to a minimum of 0 degrees and a maximum of 360 degrees.
+    void  setPitchCamera(const float&, const bool = true);   // Set the camera's angle relative to the object.
+    void  setAltitudeCamera(const float&, const bool = true); // To set the height of the chamber.
 };
 
 #endif /* MapKit_hpp */

@@ -125,6 +125,14 @@ float MapKit::getHeadingCamera(){
     return this->map_bridge->getHeadingCamera();
 }
 
-void MapKit::setHeadingCamera(const float &ht){
-    this->map_bridge->setHeadingCamera(ht);
+void MapKit::setHeadingCamera(const float &ht, const bool status){
+    this->map_bridge->setHeadingCamera(ht, status);
+}
+
+void MapKit::setPitchCamera(const float &ht, const bool status){
+    this->map_bridge->setPitchCamera(ht, status);
+}
+
+void MapKit::setAltitudeCamera(const float &ht, const bool status){
+    this->map_bridge->setAltitudeCamera(ht, status);
 }

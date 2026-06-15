@@ -394,9 +394,43 @@ float MapKitBridge::getHeadingCamera(){
     return 0.f;
 }
 
-void MapKitBridge::setHeadingCamera(const float &camera){
-    if (this->map_view != nullptr)
-        [this->map_view.camera setHeading:camera];
+void MapKitBridge::setHeadingCamera(const float &m_camera, const bool status){
+    if (this->map_view != nullptr){
+        if (status){
+            MKMapCamera *camera = [this->map_view.camera copy];
+            camera.heading = m_camera;
+            [this->map_view setCamera:camera animated:YES];
+            [camera release];
+        }else{
+            [this->map_view.camera setHeading:m_camera];
+        }
+    }
+}
+
+void MapKitBridge::setPitchCamera(const float &m_camera, const bool status){
+    if (this->map_view != nullptr){
+        if (status){
+            MKMapCamera *camera = [this->map_view.camera copy];
+            camera.pitch = m_camera;
+            [this->map_view setCamera:camera animated:YES];
+            [camera release];
+        }else{
+            [this->map_view.camera setHeading:m_camera];
+        }
+    }
+}
+
+void MapKitBridge::setAltitudeCamera(const float &m_camera, const bool status){
+    if (this->map_view != nullptr){
+        if (status){
+            MKMapCamera *camera = [this->map_view.camera copy];
+            camera.altitude = m_camera;
+            [this->map_view setCamera:camera animated:YES];
+            [camera release];
+        }else{
+            [this->map_view.camera setAltitude:m_camera];
+        }
+    }
 }
 
 void MapKitBridge::CreatedDelegatedMapKitBridge(){
