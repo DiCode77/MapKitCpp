@@ -371,6 +371,34 @@ void MapKitBridge::setUpdateCompleter(const std::string &name){
     }
 }
 
+void MapKitBridge::setCenterCoordinate(const Geodata &data, const bool status){
+    CLLocationCoordinate2D coord;
+    coord.latitude  = data.x;
+    coord.longitude = data.y;
+    
+    [this->map_view setCenterCoordinate:coord animated:YES];
+}
+
+void MapKitBridge::setCenterCoordinateAndZoom(const Geodata &data, const Geodata &zoom, const bool status){
+    CLLocationCoordinate2D coord;
+    coord.latitude  = data.x;
+    coord.longitude = data.y;
+    
+    MKCoordinateRegion region = MKCoordinateRegionMakeWithDistance(coord, zoom.x, zoom.y);
+    [this->map_view setRegion:region animated:status];
+}
+
+float MapKitBridge::getHeadingCamera(){
+    if (this->map_view != nullptr)
+        return static_cast<float>(this->map_view.camera.heading);
+    return 0.f;
+}
+
+void MapKitBridge::setHeadingCamera(const float &camera){
+    if (this->map_view != nullptr)
+        [this->map_view.camera setHeading:camera];
+}
+
 void MapKitBridge::CreatedDelegatedMapKitBridge(){
     if (this->mk_delegate == nil){
         this->mk_delegate = [[MapKitDelegate alloc] init];

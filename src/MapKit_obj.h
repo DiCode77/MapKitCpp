@@ -72,6 +72,11 @@ public:
     
     void setGeocodeLocation(const std::string&);
     void setUpdateCompleter(const std::string&);
+    void setCenterCoordinate(const Geodata&, const bool);
+    void setCenterCoordinateAndZoom(const Geodata&, const Geodata&, const bool);
+    
+    float getHeadingCamera();
+    void  setHeadingCamera(const float&);
     
 private:
     void CreatedDelegatedMapKitBridge();

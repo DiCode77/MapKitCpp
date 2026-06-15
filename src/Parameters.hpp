@@ -121,8 +121,13 @@ enum class fmap_modes{
 };
 
 enum class ffunc_conn{
+    // To enable the function that returns the camera's height. The type will be <const double&>.
     evt_height_changed,
+    
+    // To enable the function that returns the coordinates of a location. The type will be 'Geodata'.
     evt_geocode_location,
+    
+    // To enable the feature that returns a list of suggestions in the location search. The type will be std::vector<std::pair<std::string, std::string>>.
     evt_update_completer
 };
 

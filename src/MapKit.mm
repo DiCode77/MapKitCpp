@@ -112,3 +112,19 @@ void MapKit::setGeocodeLocation(const std::string &name){
 void MapKit::setUpdateCompleter(const std::string &name){
     this->map_bridge->setUpdateCompleter(name);
 }
+
+void MapKit::setCenterCoordinate(const Geodata &data, const bool status){
+    this->map_bridge->setCenterCoordinate(data, status);
+}
+
+void MapKit::setCenterCoordinateAndZoom(const Geodata &data, const Geodata &zoom, const bool status){
+    this->map_bridge->setCenterCoordinateAndZoom(data, zoom, status);
+}
+
+float MapKit::getHeadingCamera(){
+    return this->map_bridge->getHeadingCamera();
+}
+
+void MapKit::setHeadingCamera(const float &ht){
+    this->map_bridge->setHeadingCamera(ht);
+}

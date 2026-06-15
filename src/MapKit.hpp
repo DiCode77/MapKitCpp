@@ -54,6 +54,11 @@ public:
     
     void setGeocodeLocation(const std::string&);
     void setUpdateCompleter(const std::string&);
+    void setCenterCoordinate(const Geodata&, const bool = true); // move the map's focus to the desired coordinates.
+    void setCenterCoordinateAndZoom(const Geodata&, const Geodata&, const bool = true);
+    
+    float getHeadingCamera(); // Determine the angle of rotation.
+    void  setHeadingCamera(const float&); // Set the rotation angle to a minimum of 0 degrees and a maximum of 360 degrees.
 };
 
 #endif /* MapKit_hpp */
