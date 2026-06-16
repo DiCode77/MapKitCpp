@@ -132,6 +132,14 @@ typedef void (^CoordinateCallback)(double, double);
     [super dealloc];
 }
 
+- (MKAnnotationView*)mapView:(MKMapView *)mapView viewForAnnotation:(id<MKAnnotation>)annotation{
+    MKAnnotationView *view = [[MKAnnotationView alloc] initWithAnnotation:annotation reuseIdentifier:@"AirStatus"];
+    return view;
+}
+
+@end
+
+@implementation AirAnnotation
 @end
 
 MapKitBridge::MapKitBridge() : ns_view(nil), map_view(nil), rect_map(NSMakeRect(-1, -1, -1, -1)), mk_delegate(nil){}
