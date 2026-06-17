@@ -26,16 +26,11 @@ using um_map_func = std::unordered_map<ffunc_conn, std::function<void(const std:
 @property(nonatomic, assign) StRegionOf  *m_regions;
 @end
 
-@interface AirAnnotation : NSObject <MKAnnotation>
-@property(nonatomic, assign) CLLocationCoordinate2D coordinate;
-@end
-
 class MapKitBridge{
     NSView         *ns_view;
     MKMapView      *map_view;
     NSRect         rect_map;
     MapKitDelegate *mk_delegate;
-    AirAnnotation  *ar_annotation;
     Visualize      m_render;
 public:
     um_map_func um_func;

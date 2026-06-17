@@ -13,6 +13,8 @@
 #include <nlohmann/json.hpp>
 #include <vector>
 #include <ranges>
+#include <unordered_map>
+#include <flat_map>
 #include "Parameters.hpp"
 
 struct Geodata{
@@ -161,9 +163,27 @@ private:
     void RefreshVisualization(const std::vector<void*>&);
 };
 
+using um_air_objt = std::flat_map<int, std::vector<void*>>;
+
+struct StAirObject{
+    um_air_objt air_obj;
+};
+
+class AirObject{
+    void **m_map;
+private:
+    StAirObject st_air_obj;
+public:
+    AirObject() = delete;
+    AirObject(void **pmap) : m_map(pmap){}
+    AirObject(const AirObject&) = delete;
+    AirObject(AirObject&&) = delete;
+};
+
 class Visualize{
     CountryBorder *m_country;
     RegionBorder  *m_region;
+    AirObject     *m_air_obj;
 private:
     void *m_map;
 public:
@@ -174,7 +194,8 @@ public:
     void connect(void*);
     
     CountryBorder &country();
-    RegionBorder &region();
+    RegionBorder  &region();
+    AirObject     &air_object();
 };
 
 #endif

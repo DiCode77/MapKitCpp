@@ -598,7 +598,7 @@ void RegionBorder::RefreshVisualization(const std::vector<void*> &vec){
 
 // ************ Visualize class ************* //
 
-Visualize::Visualize() : m_country(new CountryBorder(&this->m_map)), m_region(new RegionBorder(&this->m_map)), m_map(nullptr){}
+Visualize::Visualize() : m_country(new CountryBorder(&this->m_map)), m_region(new RegionBorder(&this->m_map)), m_air_obj(new AirObject(&this->m_map)), m_map(nullptr){}
 
 Visualize::Visualize(void *map) : Visualize::Visualize(){
     this->m_map = map;
@@ -607,6 +607,7 @@ Visualize::Visualize(void *map) : Visualize::Visualize(){
 Visualize::~Visualize(){
     delete this->m_country;
     delete this->m_region;
+    delete this->m_air_obj;
     this->m_map = nullptr;
 }
 
@@ -620,4 +621,8 @@ CountryBorder &Visualize::country(){
 
 RegionBorder &Visualize::region(){
     return *this->m_region;
+}
+
+AirObject &Visualize::air_object(){
+    return *this->m_air_obj;
 }

@@ -139,9 +139,6 @@ typedef void (^CoordinateCallback)(double, double);
 
 @end
 
-@implementation AirAnnotation
-@end
-
 MapKitBridge::MapKitBridge() : ns_view(nil), map_view(nil), rect_map(NSMakeRect(-1, -1, -1, -1)), mk_delegate(nil){}
 MapKitBridge::MapKitBridge(void *ns_vw, const fpoint &point, const fsize &size, const fscale &scale, const fmap_type &m_type) : MapKitBridge(){
     this->ns_view  = (__bridge NSView*)ns_vw;
