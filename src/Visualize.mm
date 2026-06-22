@@ -1,5 +1,6 @@
 #include "Visualize.hpp"
 #include "MapKit_obj.h"
+#include "AirOoject.h"
 
 // ************ Utilities class ************* //
 
@@ -342,6 +343,7 @@ void RegionBorder::set_region_offices(const fcountries &coy, const std::string &
         }
         else{
             printf("%s\n", "Error created country border, method 'setRegionOffices(..., ..., ...)'");
+            printf("json size: %zu\n", d_json.size());
         }
     }
 }
@@ -594,6 +596,71 @@ void RegionBorder::RefreshVisualization(const std::vector<void*> &vec){
             [map addOverlay:reinterpret_cast<MKPolygon*>(data)];
         });
     }
+}
+
+// ************ AirObject class ************* //
+
+AirObject::AirObject(void **pmap) : m_map(pmap){
+    this->StartAsync();
+}
+
+void AirObject::add_object(const PropertyDescript &prop){
+    std::function<bool(void*, ObjectOffset&)> func = [](void *annon, ObjectOffset &offset) -> bool{
+        double dx = offset.coord_end.x - offset.coord_start.x;
+        double dy = offset.coord_end.y - offset.coord_start.y;
+        double ln = std::sqrt(dx * dx + dy * dy);
+        
+        dx /= ln;
+        dy /= ln;
+        
+        offset.current.x +=  + dx * offset.speed;
+        offset.current.y +=  + dy * offset.speed;
+        
+        ((AirAnnotation*)annon).coordinate = CLLocationCoordinate2DMake(offset.current.x, offset.current.y);
+        
+        if (offset.counter_min >= offset.counter_max){
+            return true;
+        }else{
+            offset.counter_min += 0.01;
+        }
+        
+        return false;
+    };
+    
+    this->func_update.insert(std::make_pair(CreateAirObject(prop), ObjectSettings{
+        .func = std::move(func),
+        .offset = {
+            .coord_start = prop.offset.coord_start,
+            .coord_end   = prop.offset.coord_end,
+            .current     = prop.offset.coord_start,
+            .counter_min = prop.offset.counter_min,
+            .counter_max = prop.offset.counter_max,
+            .speed       = prop.offset.speed
+        }
+    }));
+}
+
+void AirObject::StartAsync(){
+    NSTimer *timer = [NSTimer timerWithTimeInterval:0.01 repeats:YES block:^(NSTimer *timer){
+        std::erase_if(this->func_update, [this](std::pair<void* const, ObjectSettings> &pair){
+            if (pair.second.func(pair.first, pair.second.offset)){
+                [reinterpret_cast<MKMapView*>(*this->m_map) removeAnnotation:reinterpret_cast<AirAnnotation*>(pair.first)];
+                [reinterpret_cast<AirAnnotation*>(pair.first) release];
+                return true;
+            }
+            return false;
+        });
+    }];
+    [[NSRunLoop mainRunLoop] addTimer:timer forMode:NSRunLoopCommonModes];
+}
+
+void *AirObject::CreateAirObject(const PropertyDescript &data){
+    AirAnnotation *ai_ann = [[AirAnnotation alloc] init];
+    ai_ann.coordinate = CLLocationCoordinate2DMake(data.offset.coord_start.x, data.offset.coord_start.y);
+    ai_ann.path       = [NSString stringWithUTF8String:data.path.c_str()];
+    
+    [reinterpret_cast<MKMapView*>(*this->m_map) addAnnotation:ai_ann];
+    return reinterpret_cast<void*>(ai_ann);
 }
 
 // ************ Visualize class ************* //

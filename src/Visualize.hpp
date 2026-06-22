@@ -14,12 +14,12 @@
 #include <vector>
 #include <ranges>
 #include <unordered_map>
-#include <flat_map>
+#include <functional>
 #include "Parameters.hpp"
 
 struct Geodata{
-    double x;
-    double y;
+    double x = 0.f;
+    double y = 0.f;
 };
 
 struct Colors{
@@ -163,21 +163,42 @@ private:
     void RefreshVisualization(const std::vector<void*>&);
 };
 
-using um_air_objt = std::flat_map<int, std::vector<void*>>;
+struct ObjectOffset{
+    Geodata coord_start;          // Initial coordinates.
+    Geodata coord_end;            // End coordinates.
+    Geodata current;              // To save the current coordinates.
+    double  counter_min = 0.f;    //
+    double  counter_max = 900.f;  // lifespan of an object.
+    double  speed = 0.0001f;      // Object speed.
+};
 
-struct StAirObject{
-    um_air_objt air_obj;
+struct ObjectSettings{
+    std::function<bool(void*, ObjectOffset&)> func;
+    ObjectOffset offset;
+};
+
+struct PropertyDescript{
+    ObjectOffset offset;
+    std::string  path;   // Path to the object's illustration.
+    std::string  name;   // Object Name.
+    std::string  type;   // object type.
+    std::string  img;
 };
 
 class AirObject{
     void **m_map;
 private:
-    StAirObject st_air_obj;
+    std::unordered_map<void*, ObjectSettings> func_update;
 public:
     AirObject() = delete;
-    AirObject(void **pmap) : m_map(pmap){}
+    AirObject(void**);
     AirObject(const AirObject&) = delete;
     AirObject(AirObject&&) = delete;
+    
+    void add_object(const PropertyDescript&);
+private:
+    void StartAsync();
+    void *CreateAirObject(const PropertyDescript&);
 };
 
 class Visualize{

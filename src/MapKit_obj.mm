@@ -134,6 +134,7 @@ typedef void (^CoordinateCallback)(double, double);
 
 - (MKAnnotationView*)mapView:(MKMapView *)mapView viewForAnnotation:(id<MKAnnotation>)annotation{
     MKAnnotationView *view = [[MKAnnotationView alloc] initWithAnnotation:annotation reuseIdentifier:@"AirStatus"];
+    view.image = [[NSImage alloc] initWithContentsOfFile:((AirAnnotation*)annotation).path];
     return view;
 }
 

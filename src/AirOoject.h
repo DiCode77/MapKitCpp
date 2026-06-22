@@ -5,13 +5,14 @@
 //  Created by DiCode77.
 //
 
-#ifndef MapKit_obj_h
-#define MapKit_obj_h
+#ifndef AirOoject_h
+#define AirOoject_h
 
 #include <MapKit/MapKit.h>
 
 @interface AirAnnotation : NSObject <MKAnnotation>
 @property(nonatomic, assign) CLLocationCoordinate2D coordinate;
+@property(nonatomic, retain) NSString *path;
 @end
 
 #endif
