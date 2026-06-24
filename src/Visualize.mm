@@ -610,11 +610,14 @@ void AirObject::add_object(const PropertyDescript &prop){
         double dy = offset.coord_end.y - offset.coord_start.y;
         double ln = std::sqrt(dx * dx + dy * dy);
         
-        dx /= ln;
+        dx /= ln; // Let's normalize.
         dy /= ln;
-        
-        offset.current.x +=  + dx * offset.speed;
-        offset.current.y +=  + dy * offset.speed;
+
+        double step_upd   = (offset.speed / 3600.0) * 0.01; // We calculate the distance traveled on the map for each counter tick.
+        double speed_upd  = step_upd / offset.distance;
+
+        offset.current.x += (offset.coord_end.x - offset.coord_start.x) * speed_upd;
+        offset.current.y += (offset.coord_end.y - offset.coord_start.y) * speed_upd;
         
         ((AirAnnotation*)annon).coordinate = CLLocationCoordinate2DMake(offset.current.x, offset.current.y);
         
@@ -627,17 +630,26 @@ void AirObject::add_object(const PropertyDescript &prop){
         return false;
     };
     
-    this->func_update.insert(std::make_pair(CreateAirObject(prop), ObjectSettings{
-        .func = std::move(func),
-        .offset = {
-            .coord_start = prop.offset.coord_start,
-            .coord_end   = prop.offset.coord_end,
-            .current     = prop.offset.coord_start,
-            .counter_min = prop.offset.counter_min,
-            .counter_max = prop.offset.counter_max,
-            .speed       = prop.offset.speed
-        }
-    }));
+    if (void *p_obj = CreateAirObject(prop); p_obj != nullptr){
+        this->func_update.insert(std::make_pair(p_obj, ObjectSettings{
+            .func = std::move(func),
+            .offset = {
+                .coord_start = prop.offset.coord_start,
+                .coord_end   = prop.offset.coord_end,
+                .current     = prop.offset.coord_start,
+                .counter_min = prop.offset.counter_min,
+                .counter_max = prop.offset.counter_max,
+                .speed       = prop.offset.speed * 1000,
+                .distance    = this->get_distance(prop.offset.coord_start, prop.offset.coord_end)
+            }
+        }));
+    }
+}
+
+double AirObject::get_distance(const Geodata &o_st, const Geodata &o_ed){
+    CLLocation *st = [[CLLocation alloc] initWithLatitude:o_st.x longitude:o_st.y];
+    CLLocation *ed = [[CLLocation alloc] initWithLatitude:o_ed.x longitude:o_ed.y];
+    return static_cast<double>([st distanceFromLocation:ed]);
 }
 
 void AirObject::StartAsync(){
@@ -655,12 +667,17 @@ void AirObject::StartAsync(){
 }
 
 void *AirObject::CreateAirObject(const PropertyDescript &data){
-    AirAnnotation *ai_ann = [[AirAnnotation alloc] init];
-    ai_ann.coordinate = CLLocationCoordinate2DMake(data.offset.coord_start.x, data.offset.coord_start.y);
-    ai_ann.path       = [NSString stringWithUTF8String:data.path.c_str()];
-    
-    [reinterpret_cast<MKMapView*>(*this->m_map) addAnnotation:ai_ann];
-    return reinterpret_cast<void*>(ai_ann);
+    if (std::filesystem::exists(data.path)){
+        AirAnnotation *ai_ann = [[AirAnnotation alloc] init];
+        ai_ann.coordinate = CLLocationCoordinate2DMake(data.offset.coord_start.x, data.offset.coord_start.y);
+        ai_ann.path       = [NSString stringWithUTF8String:data.path.c_str()];
+        
+        [reinterpret_cast<MKMapView*>(*this->m_map) addAnnotation:ai_ann];
+        return reinterpret_cast<void*>(ai_ann);
+    }else{
+        printf("%s\n", "Error while reading the image!!!");
+    }
+    return nullptr;
 }
 
 // ************ Visualize class ************* //

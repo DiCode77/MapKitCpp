@@ -15,6 +15,7 @@
 #include <ranges>
 #include <unordered_map>
 #include <functional>
+#include <filesystem>
 #include "Parameters.hpp"
 
 struct Geodata{
@@ -167,9 +168,10 @@ struct ObjectOffset{
     Geodata coord_start;          // Initial coordinates.
     Geodata coord_end;            // End coordinates.
     Geodata current;              // To save the current coordinates.
-    double  counter_min = 0.f;    //
+    double  counter_min = 0.1f;   //
     double  counter_max = 900.f;  // lifespan of an object.
-    double  speed = 0.0001f;      // Object speed.
+    double  speed = 120000;       // Object speed. in m/h
+    double  distance = 0.f;
 };
 
 struct ObjectSettings{
@@ -195,7 +197,8 @@ public:
     AirObject(const AirObject&) = delete;
     AirObject(AirObject&&) = delete;
     
-    void add_object(const PropertyDescript&);
+    void add_object(const PropertyDescript&); // Add an object to the map with the specified settings.
+    double get_distance(const Geodata&, const Geodata&); // Returns the distance between two points in meters.
 private:
     void StartAsync();
     void *CreateAirObject(const PropertyDescript&);
