@@ -21,6 +21,14 @@
 struct Geodata{
     double x = 0.f;
     double y = 0.f;
+    
+    bool operator== (const Geodata &_g) const{
+        return this->x == _g.x && this->y == _g.y;
+    }
+    
+    bool operator!= (const Geodata &_g) const{
+        return this->x != _g.x || this->y != _g.y;
+    }
 };
 
 struct Colors{
@@ -172,6 +180,7 @@ struct ObjectOffset{
     double  counter_max = 900.f;  // lifespan of an object.
     double  speed = 120000;       // Object speed. in m/h
     double  distance = 0.f;
+    bool    release  = false;
 };
 
 struct ObjectSettings{

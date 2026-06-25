@@ -605,7 +605,7 @@ AirObject::AirObject(void **pmap) : m_map(pmap){
 }
 
 void AirObject::add_object(const PropertyDescript &prop){
-    std::function<bool(void*, ObjectOffset&)> func = [](void *annon, ObjectOffset &offset) -> bool{
+    std::function<bool(void*, ObjectOffset&)> func = [this](void *annon, ObjectOffset &offset) -> bool{
         double dx = offset.coord_end.x - offset.coord_start.x;
         double dy = offset.coord_end.y - offset.coord_start.y;
         double ln = std::sqrt(dx * dx + dy * dy);
@@ -620,6 +620,13 @@ void AirObject::add_object(const PropertyDescript &prop){
         offset.current.y += (offset.coord_end.y - offset.coord_start.y) * speed_upd;
         
         ((AirAnnotation*)annon).coordinate = CLLocationCoordinate2DMake(offset.current.x, offset.current.y);
+        
+        if (offset.release){
+            double dist = this->get_distance(offset.current, offset.coord_end);
+            if (dist <= 60.0f){ // 50 is the distance in meters.
+                return true;
+            }
+        }
         
         if (offset.counter_min >= offset.counter_max){
             return true;
@@ -640,7 +647,8 @@ void AirObject::add_object(const PropertyDescript &prop){
                 .counter_min = prop.offset.counter_min,
                 .counter_max = prop.offset.counter_max,
                 .speed       = prop.offset.speed * 1000,
-                .distance    = this->get_distance(prop.offset.coord_start, prop.offset.coord_end)
+                .distance    = ((prop.offset.coord_end != Geodata()) ? this->get_distance(prop.offset.coord_start, prop.offset.coord_end) : 200.f), //will never, ever happen.
+                .release     = prop.offset.release
             }
         }));
     }
