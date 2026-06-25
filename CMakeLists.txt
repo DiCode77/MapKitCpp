@@ -27,7 +27,6 @@ set_target_properties(${PROJ_LIB_NAME} PROPERTIES
                                                 CXX_STANDARD_REQUIRED ON 
                                                 FRAMEWORK TRUE 
                                                 FRAMEWORK_VERSION A 
-                                                MACOSX_FRAMEWORK_IDENTIFIER com.ua.dicode77.MapKitCpp
                                                 PUBLIC_HEADER ${PUBLIC_HEADERS})
 
 source_group("src" FILES ${SRC_FILES_LIB})
