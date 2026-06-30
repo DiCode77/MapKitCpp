@@ -604,7 +604,16 @@ AirObject::AirObject(void **pmap) : m_map(pmap){
     this->StartAsync();
 }
 
-void AirObject::add_object(const PropertyDescript &prop){
+AirObject::~AirObject(){
+    std::lock_guard<std::mutex> lock_dest(this->sp_object.lock_update);
+    for (void *data : this->sp_object.func_update | std::views::keys){
+        [reinterpret_cast<MKMapView*>(*this->m_map) removeAnnotation:reinterpret_cast<AirAnnotation*>(data)];
+        [reinterpret_cast<AirAnnotation*>(data) release];
+    }
+    this->sp_object.func_update.clear();
+}
+
+void AirObject::add_object(const PropertyDescript &prop, const fobject &obj_type){
     std::function<bool(void*, ObjectOffset&)> func = [this](void *annon, ObjectOffset &offset) -> bool{
         double dx = offset.coord_end.x - offset.coord_start.x;
         double dy = offset.coord_end.y - offset.coord_start.y;
@@ -637,24 +646,58 @@ void AirObject::add_object(const PropertyDescript &prop){
         return false;
     };
     
-    if (void *p_obj = CreateAirObject(prop); p_obj != nullptr){
-        this->func_update.insert(std::make_pair(p_obj, ObjectSettings{
-            .func = std::move(func),
-            .offset = {
-                .coord_start = prop.offset.coord_start,
-                .coord_end   = prop.offset.coord_end,
-                .current     = prop.offset.coord_start,
-                .counter_min = prop.offset.counter_min,
-                .counter_max = prop.offset.counter_max,
-                .speed       = prop.offset.speed * 1000,
-                .distance    = ((prop.offset.coord_end != Geodata()) ? this->get_distance(prop.offset.coord_start, prop.offset.coord_end) : 200.f), //will never, ever happen.
-                .release     = prop.offset.release
+    switch (obj_type){
+        case fobject::active:
+            if (void *p_obj = CreateAirObject(prop); p_obj != nullptr){
+                std::lock_guard<std::mutex> lock_add(this->sp_object.lock_update);
+                this->sp_object.func_update.insert(std::make_pair(p_obj, ObjectSettings{
+                    .func = std::move(func),
+                    .offset = {
+                        .coord_start = prop.offset.coord_start,
+                        .coord_end   = prop.offset.coord_end,
+                        .current     = prop.offset.coord_start,
+                        .counter_min = prop.offset.counter_min,
+                        .counter_max = prop.offset.counter_max,
+                        .speed       = prop.offset.speed * 1000,
+                        .distance    = ((prop.offset.coord_end != Geodata()) ? this->get_distance(prop.offset.coord_start, prop.offset.coord_end) : 200.f), //will never, ever happen.
+                        .release     = prop.offset.release
+                    }
+                }));
             }
-        }));
+            break;
+        case fobject::passive:
+            if (void *p_obj = CreateAirObject(prop); p_obj != nullptr){
+                this->sp_object.passive_obj.insert(std::make_pair(p_obj, prop.offset));
+            }
+            break;
+        default:
+            break;
     }
 }
 
-double AirObject::get_distance(const Geodata &o_st, const Geodata &o_ed){
+void AirObject::remove_object(void *p_data, const fobject &obj_type){
+    switch (obj_type){
+        case fobject::active:
+            if (this->sp_object.func_update.count(p_data)){
+                std::lock_guard<std::mutex> lock_add(this->sp_object.lock_update);
+                [reinterpret_cast<MKMapView*>(*this->m_map) removeAnnotation:reinterpret_cast<AirAnnotation*>(p_data)];
+                [reinterpret_cast<AirAnnotation*>(p_data) release];
+                this->sp_object.func_update.erase(p_data);
+            }
+            break;
+        case fobject::passive:
+            if (this->sp_object.func_update.count(p_data)){
+                [reinterpret_cast<MKMapView*>(*this->m_map) removeAnnotation:reinterpret_cast<AirAnnotation*>(p_data)];
+                [reinterpret_cast<AirAnnotation*>(p_data) release];
+                this->sp_object.func_update.erase(p_data);
+            }
+            break;
+        default:
+            break;
+    }
+}
+
+double AirObject::get_distance(const Geodata &o_st, const Geodata &o_ed) const{
     CLLocation *st = [[CLLocation alloc] initWithLatitude:o_st.x longitude:o_st.y];
     CLLocation *ed = [[CLLocation alloc] initWithLatitude:o_ed.x longitude:o_ed.y];
     return static_cast<double>([st distanceFromLocation:ed]);
@@ -662,16 +705,39 @@ double AirObject::get_distance(const Geodata &o_st, const Geodata &o_ed){
 
 void AirObject::StartAsync(){
     NSTimer *timer = [NSTimer timerWithTimeInterval:0.01 repeats:YES block:^(NSTimer *timer){
-        std::erase_if(this->func_update, [this](std::pair<void* const, ObjectSettings> &pair){
-            if (pair.second.func(pair.first, pair.second.offset)){
-                [reinterpret_cast<MKMapView*>(*this->m_map) removeAnnotation:reinterpret_cast<AirAnnotation*>(pair.first)];
-                [reinterpret_cast<AirAnnotation*>(pair.first) release];
-                return true;
-            }
-            return false;
-        });
+        std::unique_lock<std::mutex> lock_check(this->sp_object.lock_update, std::defer_lock);
+        if (lock_check.try_lock()){
+            std::erase_if(this->sp_object.func_update, [this](std::pair<void* const, ObjectSettings> &pair){
+                if (pair.second.func(pair.first, pair.second.offset)){
+                    [reinterpret_cast<MKMapView*>(*this->m_map) removeAnnotation:reinterpret_cast<AirAnnotation*>(pair.first)];
+                    [reinterpret_cast<AirAnnotation*>(pair.first) release];
+                    return true;
+                }
+                return false;
+            });
+        }
     }];
     [[NSRunLoop mainRunLoop] addTimer:timer forMode:NSRunLoopCommonModes];
+}
+
+std::vector<void*> AirObject::get_all_object(const fobject &obj_type) const{
+    switch (obj_type){
+        case fobject::active:
+            if (this->sp_object.func_update.size() > 0){
+                return this->sp_object.func_update | std::views::keys | std::views::transform([](void *data){
+                    return data;
+                }) | std::ranges::to<std::vector<void*>>();
+            }
+            break;
+        case fobject::passive:
+            if (this->sp_object.passive_obj.size() > 0){
+                return this->sp_object.passive_obj | std::views::keys | std::views::transform([](void *data){
+                    return data;
+                }) | std::ranges::to<std::vector<void*>>();
+            }
+            break;
+    }
+    return {};
 }
 
 void *AirObject::CreateAirObject(const PropertyDescript &data){

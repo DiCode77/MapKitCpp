@@ -16,6 +16,7 @@
 #include <unordered_map>
 #include <functional>
 #include <filesystem>
+#include <mutex>
 #include "Parameters.hpp"
 
 struct Geodata{
@@ -196,18 +197,28 @@ struct PropertyDescript{
     std::string  img;
 };
 
+struct SpatialObject{
+    std::mutex lock_update;
+    std::unordered_map<void*, ObjectSettings> func_update;
+    std::unordered_map<void*, ObjectOffset> passive_obj;
+};
+
 class AirObject{
     void **m_map;
 private:
-    std::unordered_map<void*, ObjectSettings> func_update;
+    SpatialObject sp_object;
 public:
     AirObject() = delete;
     AirObject(void**);
     AirObject(const AirObject&) = delete;
     AirObject(AirObject&&) = delete;
+    ~AirObject();
     
-    void add_object(const PropertyDescript&); // Add an object to the map with the specified settings.
-    double get_distance(const Geodata&, const Geodata&); // Returns the distance between two points in meters.
+    void add_object(const PropertyDescript&, const fobject& = fobject::passive); // Add an object to the map with the specified settings.
+    void remove_object(void*, const fobject&);
+    double get_distance(const Geodata&, const Geodata&) const; // Returns the distance between two points in meters.
+    std::vector<void*> get_all_object(const fobject&) const;
+    
 private:
     void StartAsync();
     void *CreateAirObject(const PropertyDescript&);

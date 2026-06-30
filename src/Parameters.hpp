@@ -150,4 +150,9 @@ enum class fetries{
     type
 };
 
+enum class fobject{
+    active,
+    passive
+};
+
 #endif
