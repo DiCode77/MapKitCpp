@@ -614,7 +614,7 @@ AirObject::~AirObject(){
 }
 
 void AirObject::add_object(const PropertyDescript &prop, const fobject &obj_type){
-    std::function<bool(void*, ObjectOffset&)> func = [this](void *annon, ObjectOffset &offset) -> bool{
+    std::function<bool(void*, ObjectOffset&)> func = [prop, this](void *annon, ObjectOffset &offset) -> bool{
         double dx = offset.coord_end.x - offset.coord_start.x;
         double dy = offset.coord_end.y - offset.coord_start.y;
         double ln = std::sqrt(dx * dx + dy * dy);
@@ -628,12 +628,39 @@ void AirObject::add_object(const PropertyDescript &prop, const fobject &obj_type
         offset.current.x += (offset.coord_end.x - offset.coord_start.x) * speed_upd;
         offset.current.y += (offset.coord_end.y - offset.coord_start.y) * speed_upd;
         
-        ((AirAnnotation*)annon).coordinate = CLLocationCoordinate2DMake(offset.current.x, offset.current.y);
+        AirAnnotation *m_ann = reinterpret_cast<AirAnnotation*>(annon);
+        
+        m_ann.coordinate = CLLocationCoordinate2DMake(offset.current.x, offset.current.y);
         
         if (offset.release){
             double dist = this->get_distance(offset.current, offset.coord_end);
-            if (dist <= 60.0f){ // 50 is the distance in meters.
+            if (dist <= 60.0f){ // 60 is the distance in meters.
                 return true;
+            }else{
+                if (offset.timers[0] >= 1.0f){
+                    offset.timers[0] = 0.f;
+                    m_ann.subtitle = [NSString stringWithUTF8String:std::to_string(static_cast<int>(prop.offset.speed))
+                                      .insert(0, "Speed: ")
+                                      .append(" km/h\nDistance: ")
+                                      .append(std::to_string(static_cast<int>(dist) / 1000))
+                                      .append(" km/h")
+                                      .c_str()];
+                }else{
+                    offset.timers[0] += 0.01;
+                }
+            }
+            
+        }else{
+            if (offset.timers[0] >= 1.0f){
+                offset.timers[0] = 0.f;
+                m_ann.subtitle = [NSString stringWithUTF8String:std::to_string(static_cast<int>(offset.counter_max))
+                                  .insert(0, "Lifespan: ")
+                                  .append(" sec.\nRemaining: ")
+                                  .append(std::to_string(static_cast<int>(prop.offset.counter_max - offset.counter_min)))
+                                  .append(" sec.\n")
+                                  .c_str()];
+            }else{
+                offset.timers[0] += 0.01;
             }
         }
         
@@ -657,7 +684,7 @@ void AirObject::add_object(const PropertyDescript &prop, const fobject &obj_type
                         .coord_end   = prop.offset.coord_end,
                         .current     = prop.offset.coord_start,
                         .counter_min = prop.offset.counter_min,
-                        .counter_max = prop.offset.counter_max,
+                        .counter_max = (prop.offset.counter_max == ObjectOffset().counter_max) ? ((this->get_distance(prop.offset.coord_start, prop.offset.coord_end) /1000) / prop.offset.speed) * 3600.0f : prop.offset.counter_max,
                         .speed       = prop.offset.speed * 1000,
                         .distance    = ((prop.offset.coord_end != Geodata()) ? this->get_distance(prop.offset.coord_start, prop.offset.coord_end) : 200.f), //will never, ever happen.
                         .release     = prop.offset.release
@@ -745,6 +772,8 @@ void *AirObject::CreateAirObject(const PropertyDescript &data){
         AirAnnotation *ai_ann = [[AirAnnotation alloc] init];
         ai_ann.coordinate = CLLocationCoordinate2DMake(data.offset.coord_start.x, data.offset.coord_start.y);
         ai_ann.path       = [NSString stringWithUTF8String:data.path.c_str()];
+        ai_ann.title      = [NSString stringWithUTF8String:data.name.c_str()];
+        ai_ann.subtitle   = [NSString stringWithUTF8String:std::to_string(static_cast<int>(data.offset.speed)).append("km/h").c_str()];
         
         [reinterpret_cast<MKMapView*>(*this->m_map) addAnnotation:ai_ann];
         return reinterpret_cast<void*>(ai_ann);

@@ -177,11 +177,12 @@ struct ObjectOffset{
     Geodata coord_start;          // Initial coordinates.
     Geodata coord_end;            // End coordinates.
     Geodata current;              // To save the current coordinates.
-    double  counter_min = 0.1f;   //
+    double  counter_min = 0.01f;   //
     double  counter_max = 900.f;  // lifespan of an object.
     double  speed = 120000;       // Object speed. in m/h
     double  distance = 0.f;
     bool    release  = false;
+    float   timers[2]{};
 };
 
 struct ObjectSettings{
