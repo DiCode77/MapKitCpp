@@ -215,10 +215,13 @@ public:
     AirObject(AirObject&&) = delete;
     ~AirObject();
     
-    void add_object(const PropertyDescript&, const fobject& = fobject::passive); // Add an object to the map with the specified settings.
+    bool is_alive(void*);
+    void *add_object(const PropertyDescript&, const fobject& = fobject::passive); // Add an object to the map with the specified settings.
+    void remove_object(void*);
     void remove_object(void*, const fobject&);
     double get_distance(const Geodata&, const Geodata&) const; // Returns the distance between two points in meters.
     std::vector<void*> get_all_object(const fobject&) const;
+    std::pair<fobject, ObjectSettings> get_select_settings(void*);
     
 private:
     void StartAsync();

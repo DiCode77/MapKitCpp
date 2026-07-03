@@ -152,7 +152,8 @@ enum class fetries{
 
 enum class fobject{
     active,
-    passive
+    passive,
+    end
 };
 
 #endif

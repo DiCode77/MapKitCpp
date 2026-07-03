@@ -613,7 +613,14 @@ AirObject::~AirObject(){
     this->sp_object.func_update.clear();
 }
 
-void AirObject::add_object(const PropertyDescript &prop, const fobject &obj_type){
+bool AirObject::is_alive(void *p_obj){
+    if (this->sp_object.func_update.count(p_obj) || this->sp_object.passive_obj.count(p_obj)){
+        return true;
+    }
+    return false;
+}
+
+void *AirObject::add_object(const PropertyDescript &prop, const fobject &obj_type){
     std::function<bool(void*, ObjectOffset&)> func = [prop, this](void *annon, ObjectOffset &offset) -> bool{
         double dx = offset.coord_end.x - offset.coord_start.x;
         double dy = offset.coord_end.y - offset.coord_start.y;
@@ -656,8 +663,11 @@ void AirObject::add_object(const PropertyDescript &prop, const fobject &obj_type
                 m_ann.subtitle = [NSString stringWithUTF8String:std::to_string(static_cast<int>(offset.counter_max))
                                   .insert(0, "Lifespan: ")
                                   .append(" sec.\nRemaining: ")
-                                  .append(std::to_string(static_cast<int>(prop.offset.counter_max - offset.counter_min)))
+                                  .append(std::to_string(static_cast<int>(offset.counter_max - offset.counter_min)))
                                   .append(" sec.\n")
+                                  .append("Completed: ")
+                                  .append(std::to_string(static_cast<int>((offset.counter_min / offset.counter_max) *100)))
+                                  .append(" %")
                                   .c_str()];
             }else{
                 offset.timers[0] += 0.01;
@@ -673,9 +683,9 @@ void AirObject::add_object(const PropertyDescript &prop, const fobject &obj_type
         return false;
     };
     
-    switch (obj_type){
-        case fobject::active:
-            if (void *p_obj = CreateAirObject(prop); p_obj != nullptr){
+    if (void *p_obj = CreateAirObject(prop); p_obj != nullptr){
+        switch (obj_type){
+            case fobject::active:{
                 std::lock_guard<std::mutex> lock_add(this->sp_object.lock_update);
                 this->sp_object.func_update.insert(std::make_pair(p_obj, ObjectSettings{
                     .func = std::move(func),
@@ -683,7 +693,7 @@ void AirObject::add_object(const PropertyDescript &prop, const fobject &obj_type
                         .coord_start = prop.offset.coord_start,
                         .coord_end   = prop.offset.coord_end,
                         .current     = prop.offset.coord_start,
-                        .counter_min = prop.offset.counter_min,
+                        .counter_min = prop.offset.counter_min, // If we do not manually specify the object's lifetime in seconds, then the lifetime will be set automatically, taking into account the line-of-sight range.
                         .counter_max = (prop.offset.counter_max == ObjectOffset().counter_max) ? ((this->get_distance(prop.offset.coord_start, prop.offset.coord_end) /1000) / prop.offset.speed) * 3600.0f : prop.offset.counter_max,
                         .speed       = prop.offset.speed * 1000,
                         .distance    = ((prop.offset.coord_end != Geodata()) ? this->get_distance(prop.offset.coord_start, prop.offset.coord_end) : 200.f), //will never, ever happen.
@@ -691,14 +701,31 @@ void AirObject::add_object(const PropertyDescript &prop, const fobject &obj_type
                     }
                 }));
             }
-            break;
-        case fobject::passive:
-            if (void *p_obj = CreateAirObject(prop); p_obj != nullptr){
+                break;
+            case fobject::passive:
                 this->sp_object.passive_obj.insert(std::make_pair(p_obj, prop.offset));
-            }
-            break;
-        default:
-            break;
+                break;
+            default:
+                return nullptr;
+                break;
+        }
+        return p_obj;
+    }
+    return nullptr;
+}
+
+void AirObject::remove_object(void *p_data){
+    if (this->sp_object.func_update.count(p_data)){
+        std::lock_guard<std::mutex> lock_add(this->sp_object.lock_update);
+        [reinterpret_cast<MKMapView*>(*this->m_map) removeAnnotation:reinterpret_cast<AirAnnotation*>(p_data)];
+        [reinterpret_cast<AirAnnotation*>(p_data) release];
+        this->sp_object.func_update.erase(p_data);
+    }
+    else if (this->sp_object.passive_obj.count(p_data)){
+        [reinterpret_cast<MKMapView*>(*this->m_map) removeAnnotation:reinterpret_cast<AirAnnotation*>(p_data)];
+        [reinterpret_cast<AirAnnotation*>(p_data) release];
+        this->sp_object.func_update.erase(p_data);
+    }else{
     }
 }
 
@@ -763,6 +790,18 @@ std::vector<void*> AirObject::get_all_object(const fobject &obj_type) const{
                 }) | std::ranges::to<std::vector<void*>>();
             }
             break;
+        case fobject::end:
+            break;
+    }
+    return {};
+}
+
+std::pair<fobject, ObjectSettings> AirObject::get_select_settings(void *p_data){
+    if (auto it = this->sp_object.func_update.find(p_data); it != this->sp_object.func_update.end()){
+        return std::make_pair(fobject::active, it->second);
+    }else if (auto it = this->sp_object.passive_obj.find(p_data); it != this->sp_object.passive_obj.end()){
+        return std::make_pair(fobject::passive, ObjectSettings({}, it->second));
+    }else{
     }
     return {};
 }
