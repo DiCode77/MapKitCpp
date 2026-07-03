@@ -156,4 +156,10 @@ enum class fobject{
     end
 };
 
+enum class fview_object{
+    image,
+    emoji,
+    symbol
+};
+
 #endif

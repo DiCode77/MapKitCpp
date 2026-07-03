@@ -714,6 +714,25 @@ void *AirObject::add_object(const PropertyDescript &prop, const fobject &obj_typ
     return nullptr;
 }
 
+void AirObject::change_image(void *m_data, const std::string &path, const fview_object &view_type, const int size){
+    MKAnnotationView *view = [reinterpret_cast<MKMapView*>(*this->m_map) viewForAnnotation:reinterpret_cast<AirAnnotation*>(m_data)];
+    switch (view_type) {
+        case fview_object::image:
+            view.image = [[NSImage alloc] initWithContentsOfFile:[NSString stringWithUTF8String:path.c_str()]];
+            view.frame = NSMakeRect(0, 0, size, size);
+            break;
+        case fview_object::emoji:
+            this->UseEmojis(view, path, size);
+            break;
+        case fview_object::symbol:
+            view.image = [NSImage imageWithSystemSymbolName:[NSString stringWithUTF8String:path.c_str()] accessibilityDescription:nil];
+            break;
+        default:
+            break;
+    }
+    [view.image release];
+}
+
 void AirObject::remove_object(void *p_data){
     if (this->sp_object.func_update.count(p_data)){
         std::lock_guard<std::mutex> lock_add(this->sp_object.lock_update);
@@ -807,12 +826,14 @@ std::pair<fobject, ObjectSettings> AirObject::get_select_settings(void *p_data){
 }
 
 void *AirObject::CreateAirObject(const PropertyDescript &data){
-    if (std::filesystem::exists(data.path)){
+    if (std::filesystem::exists(data.path) || data.path == "."){
         AirAnnotation *ai_ann = [[AirAnnotation alloc] init];
         ai_ann.coordinate = CLLocationCoordinate2DMake(data.offset.coord_start.x, data.offset.coord_start.y);
         ai_ann.path       = [NSString stringWithUTF8String:data.path.c_str()];
         ai_ann.title      = [NSString stringWithUTF8String:data.name.c_str()];
         ai_ann.subtitle   = [NSString stringWithUTF8String:std::to_string(static_cast<int>(data.offset.speed)).append("km/h").c_str()];
+        ai_ann.show_callout = (BOOL)data.show_callout;
+        ai_ann.size_emoji   = data.size_emoji;
         
         [reinterpret_cast<MKMapView*>(*this->m_map) addAnnotation:ai_ann];
         return reinterpret_cast<void*>(ai_ann);
@@ -820,6 +841,27 @@ void *AirObject::CreateAirObject(const PropertyDescript &data){
         printf("%s\n", "Error while reading the image!!!");
     }
     return nullptr;
+}
+
+void AirObject::UseEmojis(void *p_data, const std::string &txt, const int m_size){
+    MKAnnotationView *view = reinterpret_cast<MKAnnotationView*>(p_data);
+    
+    if (view != nil){
+        NSDictionary *ns_dict = @{
+            NSFontAttributeName : [NSFont systemFontOfSize:m_size]
+        };
+        
+        NSString *str  = [NSString stringWithUTF8String:txt.c_str()];
+        NSSize size    = [str sizeWithAttributes:ns_dict];
+        NSImage *image = [[NSImage alloc] initWithSize:size];
+        
+        [image lockFocus];
+        [str drawAtPoint:NSZeroPoint withAttributes:ns_dict];
+        [image unlockFocus];
+        
+        view.image = image;
+        //[image release];
+    }
 }
 
 // ************ Visualize class ************* //

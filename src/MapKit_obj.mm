@@ -134,8 +134,30 @@ typedef void (^CoordinateCallback)(double, double);
 
 - (MKAnnotationView*)mapView:(MKMapView *)mapView viewForAnnotation:(id<MKAnnotation>)annotation{
     MKAnnotationView *view = [[MKAnnotationView alloc] initWithAnnotation:annotation reuseIdentifier:@"AirStatus"];
-    view.image = [[NSImage alloc] initWithContentsOfFile:((AirAnnotation*)annotation).path];
-    view.canShowCallout = YES;
+    AirAnnotation *a_nn = reinterpret_cast<AirAnnotation*>(annotation);
+    
+    if (a_nn.path.length > 1){
+        view.image = [[NSImage alloc] initWithContentsOfFile:a_nn.path];
+        [view.image release];
+    }else{
+        NSFont *font = [NSFont systemFontOfSize:a_nn.size_emoji];
+        
+        NSDictionary *ns_dict = @{
+          NSFontAttributeName : font
+        };
+        
+        NSSize size = [@"⭐️" sizeWithAttributes:ns_dict];
+        
+        view.image = [[NSImage alloc] initWithSize:size];
+        
+        [view.image lockFocus];
+        [@"⭐️" drawAtPoint:NSZeroPoint withAttributes:ns_dict];
+        [view.image unlockFocus];
+        [view.image release];
+    }
+    
+    view.canShowCallout = a_nn.show_callout;
+
     return view;
 }
 
