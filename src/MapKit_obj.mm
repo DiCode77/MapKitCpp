@@ -146,19 +146,42 @@ typedef void (^CoordinateCallback)(double, double);
           NSFontAttributeName : font
         };
         
-        NSSize size = [@"⭐️" sizeWithAttributes:ns_dict];
+        NSString *emj = @"🚁";
+        NSSize size = [emj sizeWithAttributes:ns_dict];
         
         view.image = [[NSImage alloc] initWithSize:size];
         
         [view.image lockFocus];
-        [@"⭐️" drawAtPoint:NSZeroPoint withAttributes:ns_dict];
+        [emj drawAtPoint:NSZeroPoint withAttributes:ns_dict];
         [view.image unlockFocus];
         [view.image release];
     }
     
     view.canShowCallout = a_nn.show_callout;
+    
+    if (a_nn->button.provision != 0){
+        ObjectButton &button = a_nn->button;
+        switch (a_nn->button.provision) {
+            case 1:
+                view.leftCalloutAccessoryView = [NSButton buttonWithTitle:[NSString stringWithUTF8String:button.txt] target:self action:@selector(objectButton:)];
+                button.id = static_cast<int>(view.rightCalloutAccessoryView.tag);
+                break;
+            case 2:
+                view.rightCalloutAccessoryView = [NSButton buttonWithTitle:[NSString stringWithUTF8String:button.txt] target:self action:@selector(objectButton:)];
+                button.id = static_cast<int>(view.rightCalloutAccessoryView.tag);
+                break;
+            default:
+                break;
+        }
+    }
 
     return view;
+}
+
+- (void)objectButton:(NSButton*)sender{
+    if (auto it = self.um_func->find(ffunc_conn::evt_click_obj_button); it != self.um_func->end()){
+        it->second(std::make_any<int>(static_cast<int>(sender.tag)));
+    }
 }
 
 @end
@@ -373,6 +396,12 @@ void MapKitBridge::connect(const ffunc_conn &isId, std::function<void(const std:
         case ffunc_conn::evt_update_completer:
             if (!this->um_func.count(ffunc_conn::evt_update_completer)){
                 this->um_func.insert(std::make_pair(ffunc_conn::evt_update_completer, func));
+                this->InitCompliterTitles();
+            }
+            break;
+        case ffunc_conn::evt_click_obj_button:
+            if (!this->um_func.count(ffunc_conn::evt_click_obj_button)){
+                this->um_func.insert(std::make_pair(ffunc_conn::evt_click_obj_button, func));
                 this->InitCompliterTitles();
             }
             break;

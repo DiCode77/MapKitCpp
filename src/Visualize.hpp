@@ -192,10 +192,10 @@ struct ObjectSettings{
 
 struct PropertyDescript{
     ObjectOffset offset;
-    std::string  path;   // Path to the object's illustration.
+    ObjectButton button;
+    std::string  path_image;   // Path to the object's illustration.
     std::string  name;   // Object Name.
     std::string  type;   // object type.
-    std::string  img;
     bool show_callout = false;
     int  size_emoji   = 30;
 };
@@ -219,7 +219,7 @@ public:
     
     bool is_alive(void*);
     void *add_object(const PropertyDescript&, const fobject& = fobject::passive); // Add an object to the map with the specified settings.
-    void change_image(void*, const std::string&, const fview_object&, const int = 0);
+    void change_image(void*, const std::string&, const fview_object&, const int = 30);
     void remove_object(void*);
     void remove_object(void*, const fobject&);
     double get_distance(const Geodata&, const Geodata&) const; // Returns the distance between two points in meters.

@@ -9,8 +9,12 @@
 #define AirOoject_h
 
 #include <MapKit/MapKit.h>
+#include "Parameters.hpp"
 
-@interface AirAnnotation : NSObject <MKAnnotation>
+@interface AirAnnotation : NSObject <MKAnnotation>{
+@public
+    ObjectButton button;
+}
 @property(nonatomic, assign) CLLocationCoordinate2D coordinate;
 @property(nonatomic, retain) NSString *path;
 @property(nonatomic, copy) NSString   *title;

@@ -59,6 +59,13 @@ struct fpoint{
 const fsize  fSizeDefault  = { -1, -1 };
 const fpoint fPointDefault = { -1, -1 };
 
+struct ObjectButton{
+    const char *txt = nullptr;
+    int provision   = 0;   // 1. Display the button to the left of the text; 2. Display the button to the right of the text.
+    int id          = -1;
+};
+
+
 enum class fscale{
     fnone,
     fnone_fix_point,
@@ -128,7 +135,9 @@ enum class ffunc_conn{
     evt_geocode_location,
     
     // To enable the feature that returns a list of suggestions in the location search. The type will be std::vector<std::pair<std::string, std::string>>.
-    evt_update_completer
+    evt_update_completer,
+    
+    evt_click_obj_button
 };
 
 enum class fcountries{
