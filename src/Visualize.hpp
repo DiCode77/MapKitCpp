@@ -197,7 +197,7 @@ struct PropertyDescript{
     std::string  name;   // Object Name.
     std::string  type;   // object type.
     bool show_callout = false;
-    int  size_emoji   = 30;
+    int  size_icon   = 30;
 };
 
 struct SpatialObject{

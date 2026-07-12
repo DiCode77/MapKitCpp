@@ -138,6 +138,7 @@ typedef void (^CoordinateCallback)(double, double);
     
     if (a_nn.path.length > 1){
         view.image = [[NSImage alloc] initWithContentsOfFile:a_nn.path];
+        view.frame = NSMakeRect(0, 0, a_nn.size_emoji, a_nn.size_emoji);
         [view.image release];
     }else{
         NSFont *font = [NSFont systemFontOfSize:a_nn.size_emoji];

@@ -715,7 +715,7 @@ void *AirObject::add_object(const PropertyDescript &prop, const fobject &obj_typ
 }
 
 void AirObject::change_image(void *m_data, const std::string &path, const fview_object &view_type, const int size){
-    if (this->is_alive(m_data)){
+    if (this->is_alive(m_data) && std::filesystem::exists(path)){
         MKAnnotationView *view = [reinterpret_cast<MKMapView*>(*this->m_map) viewForAnnotation:reinterpret_cast<AirAnnotation*>(m_data)];
         switch (view_type) {
             case fview_object::image:
@@ -835,7 +835,7 @@ void *AirObject::CreateAirObject(const PropertyDescript &data){
         ai_ann.title      = [NSString stringWithUTF8String:data.name.c_str()];
         ai_ann.subtitle   = [NSString stringWithUTF8String:std::to_string(static_cast<int>(data.offset.speed)).append("km/h").c_str()];
         ai_ann.show_callout = (BOOL)data.show_callout;
-        ai_ann.size_emoji   = (NSInteger)data.size_emoji;
+        ai_ann.size_emoji   = (NSInteger)data.size_icon;
         ai_ann->button       = data.button;
         
         [reinterpret_cast<MKMapView*>(*this->m_map) addAnnotation:ai_ann];
