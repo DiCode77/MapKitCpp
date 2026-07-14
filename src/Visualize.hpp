@@ -187,6 +187,7 @@ struct ObjectOffset{
 
 struct ObjectSettings{
     std::function<bool(void*, ObjectOffset&)> func;
+    std::vector<Geodata> next_step;
     ObjectOffset offset;
 };
 
@@ -219,6 +220,7 @@ public:
     
     bool is_alive(void*);
     void *add_object(const PropertyDescript&, const fobject& = fobject::passive); // Add an object to the map with the specified settings.
+    void add_next_step(void*, const Geodata&);
     void change_image(void*, const std::string&, const fview_object&, const int = 30);
     void remove_object(void*);
     void remove_object(void*, const fobject&);
@@ -230,6 +232,7 @@ private:
     void StartAsync();
     void *CreateAirObject(const PropertyDescript&);
     void UseEmojis(void*, const std::string&, const int);
+    double GetLifeSpan(const Geodata&, const Geodata&, const double&);
 };
 
 class Visualize{

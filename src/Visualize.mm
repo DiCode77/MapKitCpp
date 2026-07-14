@@ -621,7 +621,7 @@ bool AirObject::is_alive(void *p_obj){
 }
 
 void *AirObject::add_object(const PropertyDescript &prop, const fobject &obj_type){
-    std::function<bool(void*, ObjectOffset&)> func = [prop, this](void *annon, ObjectOffset &offset) -> bool{
+    std::function<bool(void*, ObjectOffset&)> func = [this](void *annon, ObjectOffset &offset) -> bool{
         double dx = offset.coord_end.x - offset.coord_start.x;
         double dy = offset.coord_end.y - offset.coord_start.y;
         double ln = std::sqrt(dx * dx + dy * dy);
@@ -646,7 +646,7 @@ void *AirObject::add_object(const PropertyDescript &prop, const fobject &obj_typ
             }else{
                 if (offset.timers[0] >= 1.0f){
                     offset.timers[0] = 0.f;
-                    m_ann.subtitle = [NSString stringWithUTF8String:std::to_string(static_cast<int>(prop.offset.speed))
+                    m_ann.subtitle = [NSString stringWithUTF8String:std::to_string(static_cast<int>(offset.speed /1000))
                                       .insert(0, "Speed: ")
                                       .append(" km/h\nDistance: ")
                                       .append(std::to_string(static_cast<int>(dist) / 1000))
@@ -694,7 +694,7 @@ void *AirObject::add_object(const PropertyDescript &prop, const fobject &obj_typ
                         .coord_end   = prop.offset.coord_end,
                         .current     = prop.offset.coord_start,
                         .counter_min = prop.offset.counter_min, // If we do not manually specify the object's lifetime in seconds, then the lifetime will be set automatically, taking into account the line-of-sight range.
-                        .counter_max = (prop.offset.counter_max == ObjectOffset().counter_max) ? ((this->get_distance(prop.offset.coord_start, prop.offset.coord_end) /1000) / prop.offset.speed) * 3600.0f : prop.offset.counter_max,
+                        .counter_max = (prop.offset.counter_max == ObjectOffset().counter_max) ? this->GetLifeSpan(prop.offset.coord_start, prop.offset.coord_end, prop.offset.speed) : prop.offset.counter_max,
                         .speed       = prop.offset.speed * 1000,
                         .distance    = ((prop.offset.coord_end != Geodata()) ? this->get_distance(prop.offset.coord_start, prop.offset.coord_end) : 200.f), //will never, ever happen.
                         .release     = prop.offset.release
@@ -712,6 +712,13 @@ void *AirObject::add_object(const PropertyDescript &prop, const fobject &obj_typ
         return p_obj;
     }
     return nullptr;
+}
+
+void AirObject::add_next_step(void *m_data, const Geodata &coord){
+    std::lock_guard<std::mutex> lock_add(this->sp_object.lock_update);
+    if (auto it = this->sp_object.func_update.find(m_data); it != this->sp_object.func_update.end()){
+        it->second.next_step.emplace_back(coord);
+    }
 }
 
 void AirObject::change_image(void *m_data, const std::string &path, const fview_object &view_type, const int size){
@@ -784,9 +791,23 @@ void AirObject::StartAsync(){
         if (lock_check.try_lock()){
             std::erase_if(this->sp_object.func_update, [this](std::pair<void* const, ObjectSettings> &pair){
                 if (pair.second.func(pair.first, pair.second.offset)){
-                    [reinterpret_cast<MKMapView*>(*this->m_map) removeAnnotation:reinterpret_cast<AirAnnotation*>(pair.first)];
-                    [reinterpret_cast<AirAnnotation*>(pair.first) release];
-                    return true;
+                    if (auto it = pair.second.next_step.begin(); it != pair.second.next_step.end()){
+                        auto &offset = pair.second.offset;
+                        
+                        offset.coord_start = offset.coord_end;
+                        offset.coord_end   = *it;
+                        offset.current     = offset.coord_start;
+                        offset.counter_min = 0.01f;
+                        offset.counter_max = this->GetLifeSpan(offset.coord_start, offset.coord_end, offset.speed /1000);
+                        offset.distance    = this->get_distance(offset.coord_start, offset.coord_end);
+                        
+                        pair.second.next_step.erase(it);
+                        return false;
+                    }else{
+                        [reinterpret_cast<MKMapView*>(*this->m_map) removeAnnotation:reinterpret_cast<AirAnnotation*>(pair.first)];
+                        [reinterpret_cast<AirAnnotation*>(pair.first) release];
+                        return true;
+                    }
                 }
                 return false;
             });
@@ -821,7 +842,7 @@ std::pair<fobject, ObjectSettings> AirObject::get_select_settings(void *p_data){
     if (auto it = this->sp_object.func_update.find(p_data); it != this->sp_object.func_update.end()){
         return std::make_pair(fobject::active, it->second);
     }else if (auto it = this->sp_object.passive_obj.find(p_data); it != this->sp_object.passive_obj.end()){
-        return std::make_pair(fobject::passive, ObjectSettings({}, it->second));
+        return std::make_pair(fobject::passive, ObjectSettings({}, {}, it->second));
     }else{
     }
     return {};
@@ -865,6 +886,10 @@ void AirObject::UseEmojis(void *p_data, const std::string &txt, const int m_size
         view.image = image;
         //[image release];
     }
+}
+
+double AirObject::GetLifeSpan(const Geodata &start, const Geodata &end, const double &speed){
+    return ((this->get_distance(start, end) /1000) / speed) * 3600.0f;
 }
 
 // ************ Visualize class ************* //
